@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: B2BPress
- * Plugin URI: https://b2bpress.expensing.com/
+ * Plugin URI: https://expansing.cc/b2bpress
  * Description: 基于WooCommerce的B2B电子商务解决方案，精简了所有与B2B无关的功能
  * Version: 1.0.1
  * Author: B2BPress Team
