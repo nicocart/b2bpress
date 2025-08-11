@@ -3,7 +3,7 @@
  * Plugin Name: B2BPress
  * Plugin URI: https://b2bpress.expensing.com/
  * Description: 基于WooCommerce的B2B电子商务解决方案，精简了所有与B2B无关的功能
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: B2BPress Team
  * Author URI: https://example.com
  * Text Domain: b2bpress
@@ -27,7 +27,7 @@ add_action('before_woocommerce_init', function() {
 });
 
 // 定义插件常量
-define('B2BPRESS_VERSION', '1.0.0');
+define('B2BPRESS_VERSION', '1.0.1');
 define('B2BPRESS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('B2BPRESS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('B2BPRESS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -214,6 +214,12 @@ final class B2BPress {
         
         // 前端类
         require_once B2BPRESS_PLUGIN_DIR . 'public/class-b2bpress-public.php';
+
+        // WooCommerce 精简（隐藏购物车/结账与价格占位）
+        if (class_exists('WooCommerce')) {
+            require_once B2BPRESS_PLUGIN_DIR . 'includes/woocommerce/class-b2bpress-wc-lite.php';
+            new B2BPress_WC_Lite();
+        }
     }
 
     /**
@@ -245,6 +251,22 @@ final class B2BPress {
         
         // 创建必要的表格和设置
         do_action('b2bpress_activated');
+
+        // 预生成所有表格相关缓存（保持与历史逻辑一致，但移入类内）
+        try {
+            if (!class_exists('B2BPress_Table_Generator')) {
+                require_once B2BPRESS_PLUGIN_DIR . 'includes/tables/class-b2bpress-table-generator.php';
+            }
+
+            if (class_exists('B2BPress_Table_Generator')) {
+                $table_generator = new B2BPress_Table_Generator();
+                $table_generator->refresh_all_table_cache();
+            }
+        } catch (Exception $e) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('B2BPress 激活后预生成缓存失败: ' . $e->getMessage());
+            }
+        }
     }
 
     /**
@@ -298,44 +320,7 @@ function B2BPress() {
     return B2BPress::instance();
 }
 
-/**
- * 插件激活时执行的函数
- */
-function b2bpress_activate() {
-    // 触发激活钩子
-    do_action('b2bpress_activated');
-    
-    // 预生成所有表格的缓存
-    add_action('shutdown', 'b2bpress_generate_all_tables_cache');
-}
-
-/**
- * 预生成所有表格的缓存
- */
-function b2bpress_generate_all_tables_cache() {
-    // 确保表格生成器类已加载
-    if (!class_exists('B2BPress_Table_Generator')) {
-        require_once plugin_dir_path(__FILE__) . 'includes/tables/class-b2bpress-table-generator.php';
-    }
-    
-    // 创建表格生成器实例
-    $table_generator = new B2BPress_Table_Generator();
-    
-    // 调用刷新所有表格缓存的方法
-    $table_generator->refresh_all_table_cache();
-}
-
-/**
- * 插件停用时执行的函数
- */
-function b2bpress_deactivate() {
-    // 触发停用钩子
-    do_action('b2bpress_deactivated');
-}
-
-// 注册激活和停用钩子
-register_activation_hook(__FILE__, 'b2bpress_activate');
-register_deactivation_hook(__FILE__, 'b2bpress_deactivate');
+// 保留类内的激活/停用钩子，移除全局函数注册以避免重复
 
 // 启动插件
 $GLOBALS['b2bpress'] = B2BPress(); 

@@ -83,6 +83,7 @@ class B2BPress_Public {
         wp_localize_script('b2bpress-public', 'b2bpressPublic', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('b2bpress-public-nonce'),
+            'debounceMs' => 300,
             'i18n' => array(
                 'loading' => __('Loading...', 'b2bpress'),
                 'no_results' => __('No results found', 'b2bpress'),

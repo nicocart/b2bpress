@@ -52,6 +52,28 @@ class B2BPress_Table_Generator {
     }
     
     /**
+     * 调度异步生成表格缓存
+     */
+    public function schedule_generate_table_cache($post_id, $post = null, $update = null) {
+        if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
+            return;
+        }
+        if (get_post_type($post_id) !== 'b2bpress_table') {
+            return;
+        }
+        if (!wp_next_scheduled('b2bpress_generate_table_cache', array($post_id))) {
+            wp_schedule_single_event(time() + 5, 'b2bpress_generate_table_cache', array($post_id));
+        }
+    }
+
+    /**
+     * WP-Cron 任务：生成表格缓存
+     */
+    public function generate_table_cache_job($post_id) {
+        $this->generate_table_cache($post_id);
+    }
+    
+    /**
      * 初始化钩子
      */
     private function init_hooks() {
@@ -73,13 +95,46 @@ class B2BPress_Table_Generator {
         add_action('before_delete_post', array($this, 'invalidate_cache_on_delete'));
         add_action('woocommerce_update_product', array($this, 'invalidate_cache'));
         
-        // 监听表格保存和更新
-        add_action('save_post_b2bpress_table', array($this, 'generate_table_cache'), 10, 3);
+        // 监听表格保存和更新（改为异步任务，避免阻塞）
+        add_action('save_post_b2bpress_table', array($this, 'schedule_generate_table_cache'), 10, 3);
         
         // 监听缓存插件清除缓存的操作
         add_action('after_rocket_clean_domain', array($this, 'refresh_all_table_cache')); // WP Rocket
         add_action('wpfc_delete_cache', array($this, 'refresh_all_table_cache')); // WP Fastest Cache
         add_action('w3tc_flush_all', array($this, 'refresh_all_table_cache')); // W3 Total Cache
+
+        // 后台任务：生成表格缓存
+        add_action('b2bpress_generate_table_cache', array($this, 'generate_table_cache_job'), 10, 1);
+
+        // 监听术语（分类与属性）变更，精准失效相关表格缓存
+        add_action('created_term', array($this, 'on_term_changed'), 10, 3);
+        add_action('edited_term', array($this, 'on_term_changed'), 10, 3);
+        add_action('delete_term', array($this, 'on_term_changed'), 10, 3);
+    }
+
+    /**
+     * 术语变更时使相关缓存失效
+     *
+     * @param int $term_id 术语ID
+     * @param int $tt_id 术语taxonomy ID
+     * @param string $taxonomy 分类法
+     */
+    public function on_term_changed($term_id, $tt_id = 0, $taxonomy = '') {
+        try {
+            // 仅处理产品分类与属性分类
+            if ($taxonomy !== 'product_cat' && strpos($taxonomy, 'pa_') !== 0) {
+                return;
+            }
+            // 尽量精细化：目前未建立表格到分类映射，先清理与表格相关的缓存前缀
+            $this->cache->delete_group('b2bpress_table');
+            $this->cache->delete_by_prefix('b2bpress_rendered_table_');
+            $this->cache->delete_by_prefix('b2bpress_table_all_data_');
+        } catch (Exception $e) {
+            // 仅记录调试日志
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('B2BPress 术语变更缓存失效失败: ' . $e->getMessage());
+            }
+        }
     }
     
     /**
@@ -266,7 +321,7 @@ class B2BPress_Table_Generator {
         // 获取用户语言偏好
         $user_language = $this->get_user_language(true);
         
-        // 输出表格HTML
+        // 输出表格HTML（表头列添加 scope="col" 以提升可访问性）
         ?>
         <div class="b2bpress-table-wrapper">
             <table class="<?php echo esc_attr($table_class); ?>" data-per-page="<?php echo esc_attr($this->settings['per_page']); ?>">
@@ -278,25 +333,25 @@ class B2BPress_Table_Generator {
                 <tbody class="b2bpress-table-body">
                     <tr>
                         <td colspan="<?php echo $column_count; ?>" class="b2bpress-loading">
-                            <?php _e('Loading...', 'b2bpress'); ?>
+                            <?php esc_html_e('Loading...', 'b2bpress'); ?>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
         
-        <div class="b2bpress-table-pagination">
-            <div class="b2bpress-table-pagination-info"></div>
+        <div class="b2bpress-table-pagination" role="navigation" aria-label="Table pagination">
+            <div class="b2bpress-table-pagination-info" aria-live="polite"></div>
             <div class="b2bpress-table-pagination-links"></div>
         </div>
         
         <?php if (current_user_can('manage_b2bpress') && $this->table_id > 0) : ?>
             <div class="b2bpress-table-actions">
-                <a href="<?php echo admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $this->table_id); ?>" class="button">
-                    <?php _e('Edit Table', 'b2bpress'); ?>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $this->table_id)); ?>" class="button">
+                    <?php esc_html_e('Edit Table', 'b2bpress'); ?>
                 </a>
                 <button type="button" class="button b2bpress-refresh-table" data-id="<?php echo esc_attr($this->table_id); ?>">
-                    <?php _e('Refresh Cache', 'b2bpress'); ?>
+                    <?php esc_html_e('Refresh Cache', 'b2bpress'); ?>
                 </button>
             </div>
         <?php endif; ?>
@@ -316,15 +371,21 @@ class B2BPress_Table_Generator {
         
         // 只有在设置为显示图片时才输出缩略图列
         if ($this->settings['show_images']) {
-            echo '<th class="b2bpress-column-thumbnail">' . __('Image', 'b2bpress') . '</th>';
+            echo '<th scope="col" class="b2bpress-column-thumbnail">' . esc_html__('Image', 'b2bpress') . '</th>';
         }
         
-        // 输出产品名称列
-        echo '<th class="b2bpress-column-name">' . __('Product Name', 'b2bpress') . '</th>';
+        // 输出产品名称列（允许扩展过滤列头）
+        echo apply_filters(
+            'b2bpress_table_header_cell',
+            '<th scope="col" class="b2bpress-column-name">' . esc_html__('Product Name', 'b2bpress') . '</th>',
+            array('key' => 'name', 'label' => __('Product Name', 'b2bpress'), 'type' => 'name'),
+            $this->table_id
+        );
         
         // 输出其他列
         foreach ($this->columns as $column) {
-            echo '<th class="b2bpress-column-' . esc_attr($column['key']) . '">' . esc_html($column['label']) . '</th>';
+            $th_html = '<th scope="col" class="b2bpress-column-' . esc_attr($column['key']) . '">' . esc_html($column['label']) . '</th>';
+            echo apply_filters('b2bpress_table_header_cell', $th_html, $column, $this->table_id);
         }
     }
     
@@ -458,9 +519,10 @@ class B2BPress_Table_Generator {
                 $product_data['thumbnail'] = $this->get_product_thumbnail($product);
             }
             
-            // 添加列数据
+            // 添加列数据（在服务端做安全处理，避免前端插入未转义HTML）
             foreach ($this->columns as $column) {
-                $product_data[$column['key']] = $this->get_column_value($product, $column);
+                $raw_value = $this->get_column_value($product, $column);
+                $product_data[$column['key']] = $this->sanitize_cell_output($raw_value, $column);
             }
             
             $products[] = $product_data;
@@ -534,6 +596,7 @@ class B2BPress_Table_Generator {
                 break;
                 
             case 'price':
+                // 价格HTML允许有限HTML
                 $value = $product->get_price_html();
                 break;
                 
@@ -548,6 +611,29 @@ class B2BPress_Table_Generator {
         }
         
         return $value;
+    }
+
+    /**
+     * 根据列类型安全输出单元格内容
+     *
+     * @param mixed $value 原始值
+     * @param array $column 列配置
+     * @return string 已转义的值
+     */
+    private function sanitize_cell_output($value, $column) {
+        // 允许的HTML类型：价格、缩略图、外部过滤后已HTML
+        $html_allowed_types = array('price');
+
+        if ($column['key'] === 'thumbnail') {
+            return wp_kses_post((string)$value);
+        }
+
+        if (in_array($column['type'], $html_allowed_types, true)) {
+            return wp_kses_post((string)$value);
+        }
+
+        // 其他全部按纯文本处理
+        return esc_html((string)$value);
     }
     
     /**
@@ -1123,26 +1209,30 @@ class B2BPress_Table_Generator {
         $this->log_debug('开始刷新所有表格缓存');
         
         try {
-            // 查询所有表格
-            $args = array(
-                'post_type' => 'b2bpress_table',
-                'post_status' => 'publish',
-                'posts_per_page' => -1,
-            );
-            
-            $query = new WP_Query($args);
-            $this->log_debug('查询到表格数量: ' . $query->post_count);
+            // 分页查询所有表格，避免 -1 大查询
+            $paged = 1;
+            $per_page = 50;
+            $total_found = 0;
             
             $success_count = 0;
             $error_count = 0;
             $errors = array();
             
-            if ($query->have_posts()) {
-                while ($query->have_posts()) {
-                    $query->the_post();
-                    $post_id = get_the_ID();
-                    
-                    // 为每个表格重新生成缓存
+            do {
+                $query = new WP_Query(array(
+                    'post_type' => 'b2bpress_table',
+                    'post_status' => 'publish',
+                    'posts_per_page' => $per_page,
+                    'paged' => $paged,
+                    'fields' => 'ids',
+                ));
+
+                if (!$query->have_posts()) {
+                    break;
+                }
+
+                $total_found += count($query->posts);
+                foreach ($query->posts as $post_id) {
                     try {
                         $this->log_debug('开始处理表格ID: ' . $post_id);
                         $this->generate_table_cache($post_id);
@@ -1153,18 +1243,16 @@ class B2BPress_Table_Generator {
                         $errors[] = '表格ID: ' . $post_id . ' - ' . $e->getMessage();
                     }
                 }
-                
-                // 重置查询
+
+                $paged++;
                 wp_reset_postdata();
-                
-                $this->log_debug('所有表格缓存刷新完成，成功: ' . $success_count . ', 失败: ' . $error_count);
-                
-                // 如果有错误，抛出异常
-                if ($error_count > 0) {
-                    throw new Exception('部分表格缓存刷新失败: ' . implode('; ', $errors));
-                }
-            } else {
-                $this->log_debug('没有找到任何表格');
+            } while ($query->max_num_pages >= $paged - 1);
+
+            $this->log_debug('分页查询到表格数量: ' . $total_found);
+            $this->log_debug('所有表格缓存刷新完成，成功: ' . $success_count . ', 失败: ' . $error_count);
+
+            if ($error_count > 0) {
+                throw new Exception('部分表格缓存刷新失败: ' . implode('; ', $errors));
             }
         } catch (Exception $e) {
             $this->log_debug('刷新所有表格缓存过程中发生异常', $e->getMessage());
@@ -1242,6 +1330,9 @@ class B2BPress_Table_Generator {
             }
             
             $this->log_debug('缓存失效完成');
+            if (method_exists($this->cache, 'bump_last_changed')) {
+                $this->cache->bump_last_changed();
+            }
         } catch (Exception $e) {
             $this->log_debug('使缓存失效过程中发生异常', $e->getMessage());
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -1305,7 +1396,7 @@ class B2BPress_Table_Generator {
             $this->settings['show_images'] = $show_images;
         }
         
-        // 获取所有表格数据
+        // 获取所有表格数据（分页聚合）
         $table_data = $this->get_all_table_data($this->table_id);
         
         // 输出表格HTML
@@ -1322,22 +1413,24 @@ class B2BPress_Table_Generator {
                         <?php foreach ($table_data['products'] as $product): ?>
                             <tr>
                                 <?php if ($this->settings['show_images']): ?>
-                                    <td class="b2bpress-column-thumbnail"><?php echo $product['thumbnail']; ?></td>
+                                    <td class="b2bpress-column-thumbnail"><?php echo isset($product['thumbnail']) ? wp_kses_post($product['thumbnail']) : ''; ?></td>
                                 <?php endif; ?>
                                 <td class="b2bpress-column-name">
                                     <a href="<?php echo esc_url($product['permalink']); ?>"><?php echo esc_html($product['name']); ?></a>
                                 </td>
                                 <?php foreach ($this->columns as $column): ?>
-                                    <td class="b2bpress-column-<?php echo esc_attr($column['key']); ?>">
-                                        <?php echo isset($product[$column['key']]) ? $product[$column['key']] : ''; ?>
-                                    </td>
+                                    <?php
+                                    $cell_value = isset($product[$column['key']]) ? $product[$column['key']] : '';
+                                    $cell_html = '<td class="b2bpress-column-' . esc_attr($column['key']) . '">' . $this->sanitize_cell_output($cell_value, $column) . '</td>';
+                                    echo apply_filters('b2bpress_table_cell', $cell_html, $cell_value, $column, $product, $this->table_id);
+                                    ?>
                                 <?php endforeach; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
                             <td colspan="<?php echo count($this->columns) + 1 + ($this->settings['show_images'] ? 1 : 0); ?>" class="b2bpress-no-results">
-                                <?php _e('No products found', 'b2bpress'); ?>
+                                <?php esc_html_e('No products found', 'b2bpress'); ?>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -1381,79 +1474,62 @@ class B2BPress_Table_Generator {
             );
         }
         
-        // 查询产品
-        $args = array(
-            'post_type' => 'product',
-            'post_status' => 'publish',
-            'posts_per_page' => -1, // 获取所有产品
-        );
-        
-        // 添加分类过滤
-        if ($category > 0) {
-            $args['tax_query'] = array(
-                array(
-                    'taxonomy' => 'product_cat',
-                    'field' => 'term_id',
-                    'terms' => $category,
-                ),
-            );
-        }
-        
-        // 执行查询
-        $query = new WP_Query($args);
-        
-        // 准备返回数据
+        // 分页聚合，避免 -1 大查询
         $products = array();
-        
-        // 循环处理产品
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                
-                // 获取产品ID
-                $product_id = get_the_ID();
-                
-                // 获取WooCommerce产品对象
+        $per_page_query = 100;
+        $paged = 1;
+        do {
+            $args = array(
+                'post_type' => 'product',
+                'post_status' => 'publish',
+                'posts_per_page' => $per_page_query,
+                'paged' => $paged,
+                'fields' => 'ids',
+            );
+            if ($category > 0) {
+                $args['tax_query'] = array(
+                    array(
+                        'taxonomy' => 'product_cat',
+                        'field' => 'term_id',
+                        'terms' => $category,
+                    ),
+                );
+            }
+
+            $query = new WP_Query($args);
+            if (!$query->have_posts()) {
+                break;
+            }
+
+            foreach ($query->posts as $product_id) {
                 $product = wc_get_product($product_id);
-                if (!$product) {
-                    continue;
-                }
-                
-                // 准备产品数据
+                if (!$product) { continue; }
                 $product_data = array(
                     'id' => $product_id,
                     'name' => $product->get_name(),
                     'permalink' => get_permalink($product_id),
                 );
-                
-                // 只有在设置为显示图片时才添加缩略图
                 if ($settings['show_images']) {
                     $product_data['thumbnail'] = $this->get_product_thumbnail($product);
                 }
-                
-                // 获取产品属性
                 foreach ($columns as $column) {
                     $product_data[$column['key']] = $this->get_product_attribute($product, $column);
                 }
-                
-                // 添加到产品列表
                 $products[] = $product_data;
             }
-            
-            // 重置查询
+
+            $paged++;
             wp_reset_postdata();
-        }
-        
-        // 准备返回数据
+        } while ($query->max_num_pages >= $paged - 1);
+
         $data = array(
             'products' => $products,
             'columns' => $columns,
             'show_images' => $settings['show_images'],
         );
-        
-        // 缓存数据（24小时）
+
         $this->cache->set($cache_key, $data, 86400);
-        
+
         return $data;
     }
 

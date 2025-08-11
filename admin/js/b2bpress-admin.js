@@ -28,11 +28,11 @@
                             // 刷新页面
                             location.reload();
                         } else {
-                            alert(response.data || '删除表格时发生错误');
+                            alert(response.data || b2bpressAdmin.i18n.error_delete_table);
                         }
                     },
                     error: function() {
-                        alert('删除表格时发生错误');
+                        alert(b2bpressAdmin.i18n.error_delete_table);
                     }
                 });
             }
@@ -46,11 +46,11 @@
             var $temp = $('<input>');
             $('body').append($temp);
             $temp.val(shortcode).select();
-            document.execCommand('copy');
+            try { document.execCommand('copy'); } catch (e) {}
             $temp.remove();
             
             var originalText = $button.text();
-            $button.text('已复制');
+            $button.text(b2bpressAdmin.i18n.copied);
             
             setTimeout(function() {
                 $button.text(originalText);
@@ -94,7 +94,7 @@
         var currentPage = window.location.href;
         
         // 根据当前页面初始化相应功能
-        if (currentPage.indexOf('page=b2bpress-tables') !== -1) {
+            if (currentPage.indexOf('page=b2bpress-tables') !== -1) {
             if (currentPage.indexOf('action=edit') !== -1) {
                 initTableEdit();
             } else if (currentPage.indexOf('action=new') !== -1) {
@@ -117,15 +117,10 @@
             var originalText = $button.text();
             
             $button.prop('disabled', true);
-            $button.text('刷新中...');
+            $button.text(b2bpressAdmin.i18n.refreshing);
             
-            // 确保使用管理员nonce
+            // 使用管理员nonce（仅在管理员界面；不打印到控制台）
             var nonce = b2bpressAdmin.nonce;
-            
-            console.log('刷新缓存请求:', {
-                tableId: tableId,
-                nonce: nonce.substr(0, 5) + '...' // 只显示nonce的前5个字符，出于安全考虑
-            });
             
             $.ajax({
                 url: b2bpressAdmin.ajaxUrl,
@@ -136,10 +131,8 @@
                     table_id: tableId
                 },
                 success: function(response) {
-                    console.log('刷新缓存响应:', response);
-                    
                     if (response.success) {
-                        $button.text('已刷新');
+                        $button.text(b2bpressAdmin.i18n.refreshed);
                         
                         setTimeout(function() {
                             $button.prop('disabled', false);
@@ -148,16 +141,13 @@
                     } else {
                         $button.prop('disabled', false);
                         $button.text(originalText);
-                        alert(response.data || '刷新缓存时发生错误');
+                        alert(response.data || b2bpressAdmin.i18n.error_refresh_cache);
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('AJAX错误:', status, error);
-                    console.error('响应文本:', xhr.responseText);
-                    
                     $button.prop('disabled', false);
                     $button.text(originalText);
-                    alert('刷新缓存时发生错误: ' + error);
+                    alert(b2bpressAdmin.i18n.error_refresh_cache + ': ' + error);
                 }
             });
         });

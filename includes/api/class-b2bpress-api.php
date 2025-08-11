@@ -121,11 +121,11 @@ class B2BPress_API {
             ),
         ));
         
-        // 注册表格数据路由
+        // 注册表格数据路由（统一前端数据来源）
         register_rest_route($this->namespace, '/tables/(?P<id>\d+)/data', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'get_table_data'),
-            'permission_callback' => array($this, 'get_item_permissions_check'),
+            'permission_callback' => array($this, 'get_table_data_permissions_check'),
             'args' => array(
                 'id' => array(
                     'validate_callback' => function($param) {
@@ -135,14 +135,27 @@ class B2BPress_API {
                 'page' => array(
                     'type' => 'integer',
                     'default' => 1,
+                    'minimum' => 1,
                 ),
                 'per_page' => array(
                     'type' => 'integer',
                     'default' => 20,
+                    'minimum' => 1,
+                    'maximum' => 200,
                 ),
                 'search' => array(
                     'type' => 'string',
                     'sanitize_callback' => 'sanitize_text_field',
+                    'default' => '',
+                ),
+                'category' => array(
+                    'type' => 'integer',
+                    'default' => 0,
+                ),
+                'language' => array(
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'default' => '',
                 ),
             ),
         ));
@@ -155,13 +168,18 @@ class B2BPress_API {
      * @return bool|WP_Error
      */
     public function get_items_permissions_check($request) {
-        // 检查用户是否可以查看B2BPress表格
-        $permissions = new B2BPress_Permissions();
-        if (!$permissions->can_view_b2bpress_tables()) {
-            return new WP_Error('rest_forbidden', __('您没有查看表格的权限', 'b2bpress'), array('status' => 403));
+        // 若未启用“需要登录”，允许匿名读取表格列表
+        $options = get_option('b2bpress_options', array());
+        if (empty($options['login_required'])) {
+            return true;
         }
-        
-        return true;
+
+        $permissions = new B2BPress_Permissions();
+        if ($permissions->can_view_b2bpress_tables()) {
+            return true;
+        }
+
+        return new WP_Error('rest_forbidden', __('您没有查看表格的权限', 'b2bpress'), array('status' => 403));
     }
     
     /**
@@ -171,12 +189,44 @@ class B2BPress_API {
      * @return bool|WP_Error
      */
     public function get_item_permissions_check($request) {
-        // 检查用户是否可以查看B2BPress表格
-        $permissions = new B2BPress_Permissions();
-        if (!$permissions->can_view_b2bpress_tables()) {
-            return new WP_Error('rest_forbidden', __('您没有查看表格的权限', 'b2bpress'), array('status' => 403));
+        // 若未启用“需要登录”，允许匿名读取表格详情
+        $options = get_option('b2bpress_options', array());
+        if (empty($options['login_required'])) {
+            return true;
         }
-        
+
+        $permissions = new B2BPress_Permissions();
+        if ($permissions->can_view_b2bpress_tables()) {
+            return true;
+        }
+
+        return new WP_Error('rest_forbidden', __('您没有查看表格的权限', 'b2bpress'), array('status' => 403));
+    }
+
+    /**
+     * 检查获取表格数据的权限（与可见性策略对齐）
+     *
+     * 若 login_required=false 列表数据可匿名读取；否则要求登录
+     *
+     * @param WP_REST_Request $request 请求对象
+     * @return bool|WP_Error
+     */
+    public function get_table_data_permissions_check($request) {
+        $table_id = absint($request->get_param('id'));
+        $post = get_post($table_id);
+        if (!$post || $post->post_type !== 'b2bpress_table') {
+            return new WP_Error('rest_not_found', __('表格不存在', 'b2bpress'), array('status' => 404));
+        }
+
+        // 读取表格设置
+        $table_generator = new B2BPress_Table_Generator();
+        $settings = $table_generator->get_table_settings($table_id);
+        $login_required = isset($settings['login_required']) ? (bool)$settings['login_required'] : false;
+
+        if ($login_required && !is_user_logged_in()) {
+            return new WP_Error('rest_forbidden', __('需要登录才能查看该表格数据', 'b2bpress'), array('status' => 401));
+        }
+
         return true;
     }
     
@@ -493,6 +543,8 @@ class B2BPress_API {
         $page = $request->get_param('page');
         $per_page = $request->get_param('per_page');
         $search = $request->get_param('search');
+        $category = (int) $request->get_param('category');
+        $language = $request->get_param('language');
         
         // 检查表格是否存在
         $post = get_post($table_id);
@@ -503,12 +555,50 @@ class B2BPress_API {
         // 获取表格数据
         $table_generator = new B2BPress_Table_Generator();
         $settings = $table_generator->get_table_settings($table_id);
-        
+
+        // 临时应用语言（如果提供）
+        if (!empty($language)) {
+            switch_to_locale($language);
+        }
+
+        // 优先使用传入的 category（允许临时分类视图），否则使用表格设置
+        $effective_category = $category > 0 ? $category : (isset($settings['category']) ? (int)$settings['category'] : 0);
+
+        // 计算 ETag/Last-Modified
+        $etag = $this->compute_etag($table_id, $page, $per_page, (string)$search, $effective_category);
+        $last_modified_gmt = $this->compute_last_modified_gmt($table_id);
+
+        // 条件请求命中则返回304
+        $if_none_match = $request->get_header('if-none-match');
+        $if_modified_since = $request->get_header('if-modified-since');
+        if (!empty($if_none_match) && trim($if_none_match, '"') === $etag) {
+            $response = new WP_REST_Response(null, 304);
+            $this->apply_cache_headers($response, $etag, $last_modified_gmt);
+            if (!empty($language)) { restore_previous_locale(); }
+            return $response;
+        }
+        if (!empty($if_modified_since)) {
+            $since = strtotime($if_modified_since);
+            if ($since !== false && gmdate('D, d M Y H:i:s', $since) . ' GMT' >= $last_modified_gmt) {
+                $response = new WP_REST_Response(null, 304);
+                $this->apply_cache_headers($response, $etag, $last_modified_gmt);
+                if (!empty($language)) { restore_previous_locale(); }
+                return $response;
+            }
+        }
+
         // 获取表格数据
-        $data = $this->get_data($table_id, $page, $per_page, $search, $settings['category']);
-        
-        // 返回响应
-        return rest_ensure_response($data);
+        $data = $this->get_data($table_id, $page, $per_page, $search, $effective_category);
+
+        // 输出响应并附带缓存头
+        $response = rest_ensure_response($data);
+        $this->apply_cache_headers($response, $etag, $last_modified_gmt);
+
+        if (!empty($language)) {
+            restore_previous_locale();
+        }
+
+        return $response;
     }
     
     /**
@@ -587,14 +677,72 @@ class B2BPress_API {
             'total_items' => $query->found_posts,
         );
         
+        // 从全局或表格设置确定是否显示图片
+        $global_options = get_option('b2bpress_options', array());
+        $show_images = isset($global_options['show_product_images']) ? (bool)$global_options['show_product_images'] : false;
+        $settings = $table_generator->get_table_settings($table_id);
+        if (isset($settings['show_images'])) {
+            $show_images = (bool)$settings['show_images'];
+        }
+
+        // 若禁用价格，则在API层也输出占位
+        $options = get_option('b2bpress_options', array());
+        if (isset($options['disable_prices']) && $options['disable_prices']) {
+            foreach ($products as &$p) {
+                // 遍历列找出 price 类型并替换为占位
+                foreach ($columns as $col) {
+                    if ($col['type'] === 'price') {
+                        $p[$col['key']] = is_user_logged_in() ? __('面议', 'b2bpress') : __('登录后可见', 'b2bpress');
+                    }
+                }
+            }
+            unset($p);
+        }
+
         // 准备返回数据
         $data = array(
             'products' => $products,
             'pagination' => $pagination,
             'columns' => $columns,
+            'show_images' => $show_images,
         );
         
         return $data;
+    }
+
+    /**
+     * 计算 ETag
+     */
+    private function compute_etag($table_id, $page, $per_page, $search, $category) {
+        $last_changed = get_option('b2bpress_last_changed', '0');
+        $post = get_post($table_id);
+        $modified = $post ? strtotime($post->post_modified_gmt) : 0;
+        $token = implode('|', array($table_id, (int)$page, (int)$per_page, (string)$search, (int)$category, (string)$last_changed, (int)$modified));
+        return md5($token);
+    }
+
+    /**
+     * 计算 Last-Modified (GMT 格式)
+     */
+    private function compute_last_modified_gmt($table_id) {
+        $last_changed = get_option('b2bpress_last_changed', '0');
+        $post = get_post($table_id);
+        $modified_ts = $post ? max(strtotime($post->post_modified_gmt), (int)$last_changed) : (int)$last_changed;
+        if (!$modified_ts) {
+            $modified_ts = time();
+        }
+        return gmdate('D, d M Y H:i:s', $modified_ts) . ' GMT';
+    }
+
+    /**
+     * 为响应添加缓存头
+     */
+    private function apply_cache_headers($response, $etag, $last_modified_gmt) {
+        if ($response instanceof WP_REST_Response) {
+            $response->header('Cache-Control', 'public, max-age=300, must-revalidate');
+            $response->header('ETag', '"' . $etag . '"');
+            $response->header('Last-Modified', $last_modified_gmt);
+        }
     }
     
     /**

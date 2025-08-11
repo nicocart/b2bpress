@@ -23,6 +23,9 @@
         this.currentPage = 1;
         this.searchQuery = '';
         this.category = $container.data('category') || 0;
+        this.debounceMs = (typeof b2bpressPublic !== 'undefined' && b2bpressPublic.debounceMs) ? b2bpressPublic.debounceMs : 300;
+        this._debounceTimer = null;
+        this._currentXHR = null;
         
         // 获取站点语言
         this.siteLanguage = $container.data('language') || b2bpressPublic.locale || b2bpressPublic.default_locale;
@@ -48,20 +51,32 @@
             // 绑定搜索事件
             var self = this;
             this.$searchInput.on('keyup', function() {
-                self.searchQuery = $(this).val();
-                self.currentPage = 1;
-                self.loadTableData();
+                var value = $(this).val();
+                if (self._debounceTimer) {
+                    clearTimeout(self._debounceTimer);
+                }
+                self._debounceTimer = setTimeout(function() {
+                    self.searchQuery = value;
+                    self.currentPage = 1;
+                    self.loadTableData();
+                }, self.debounceMs);
             });
         } else {
             // 对于预渲染表格，仅绑定搜索事件用于客户端过滤
             var self = this;
             this.$searchInput.on('keyup', function() {
-                var searchTerm = $(this).val().toLowerCase();
-                self.filterTableRows(searchTerm);
+                var inputEl = this;
+                if (self._debounceTimer) {
+                    clearTimeout(self._debounceTimer);
+                }
+                self._debounceTimer = setTimeout(function() {
+                    var searchTerm = $(inputEl).val().toLowerCase();
+                    self.filterTableRows(searchTerm);
+                }, self.debounceMs);
             });
             
-            // 绑定刷新缓存按钮
-            this.$container.find('.b2bpress-refresh-cache').on('click', function() {
+            // 绑定刷新缓存按钮（兼容两种类名）
+            this.$container.find('.b2bpress-refresh-cache, .b2bpress-refresh-table').on('click', function() {
                 var tableId = $(this).data('table-id');
                 self.refreshTableCache(tableId);
             });
@@ -208,29 +223,47 @@
         // 显示加载状态
         this.$tbody.html('<tr><td colspan="' + (this.$table.find('th').length) + '" class="b2bpress-loading">' + b2bpressPublic.i18n.loading + '</td></tr>');
         
-        // 发送AJAX请求
-        $.ajax({
-            url: b2bpressPublic.ajaxUrl,
-            type: 'POST',
+        var restRoot = (typeof b2bpressPublic !== 'undefined' && b2bpressPublic.restRoot) ? b2bpressPublic.restRoot : (window.wpApiSettings && window.wpApiSettings.root ? window.wpApiSettings.root : (window.location.origin + '/wp-json/'));
+        var endpoint = restRoot.replace(/\/$/, '') + '/b2bpress/v1/tables/' + encodeURIComponent(this.tableId) + '/data';
+
+        var headers = {};
+        if (typeof b2bpressPublic !== 'undefined' && b2bpressPublic.restNonce) {
+            headers['X-WP-Nonce'] = b2bpressPublic.restNonce;
+        }
+
+        // 如有正在进行的请求则中止
+        if (this._currentXHR && this._currentXHR.readyState !== 4) {
+            try { this._currentXHR.abort(); } catch (e) {}
+        }
+
+        // 发送REST请求（GET），浏览器可依据 ETag/Last-Modified 进行缓存
+        this._currentXHR = $.ajax({
+            url: endpoint,
+            type: 'GET',
+            cache: true,
             data: {
-                action: 'b2bpress_get_table_data',
-                nonce: b2bpressPublic.nonce,
-                table_id: this.tableId,
                 page: this.currentPage,
                 per_page: this.perPage,
                 search: this.searchQuery,
                 category: this.category,
                 language: this.siteLanguage
             },
-            success: function(response) {
-                if (response.success) {
-                    self.renderTableData(response.data);
-                } else {
-                    self.$tbody.html('<tr><td colspan="' + (self.$table.find('th').length) + '" class="b2bpress-error">' + (response.data || b2bpressPublic.i18n.error) + '</td></tr>');
+            headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                self.renderTableData(data);
+            },
+            statusCode: {
+                304: function() {
+                    // 已使用缓存，保持现状或根据需要提示
                 }
             },
-            error: function() {
-                self.$tbody.html('<tr><td colspan="' + (self.$table.find('th').length) + '" class="b2bpress-error">' + b2bpressPublic.i18n.error + '</td></tr>');
+            error: function(xhr) {
+                if (xhr && xhr.statusText === 'abort') { return; }
+                var msg = b2bpressPublic.i18n.error;
+                if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                self.$tbody.html('<tr><td colspan="' + (self.$table.find('th').length) + '" class="b2bpress-error">' + msg + '</td></tr>');
             }
         });
     };
@@ -249,29 +282,50 @@
             return;
         }
         
-        // 渲染表格行
-        var html = '';
-        
+        // 渲染表格行（使用DOM API，避免拼接原始HTML导致XSS）
+        var $fragment = $(document.createDocumentFragment());
+
         for (var i = 0; i < data.products.length; i++) {
             var product = data.products[i];
-            
-            html += '<tr>';
-            // 只有在设置为显示图片时才渲染图片列
-            if (data.show_images === true) {
-                html += '<td class="b2bpress-column-thumbnail">' + product.thumbnail + '</td>';
+
+            var $tr = $('<tr>');
+
+            // 缩略图列（允许安全的受限HTML）
+            if (data.show_images === true && product.thumbnail) {
+                var $thumbTd = $('<td class="b2bpress-column-thumbnail">');
+                $thumbTd.html(product.thumbnail);
+                $tr.append($thumbTd);
             }
-            html += '<td class="b2bpress-column-name"><a href="' + product.permalink + '">' + product.name + '</a></td>';
-            
-            // 渲染其他列
+
+            // 产品名称列（安全：文本 + href 属性）
+            var $nameTd = $('<td class="b2bpress-column-name">');
+            var $nameLink = $('<a>');
+            $nameLink.attr('href', String(product.permalink || '#'));
+            $nameLink.text(String(product.name || ''));
+            $nameTd.append($nameLink);
+            $tr.append($nameTd);
+
+            // 其他列
             for (var j = 0; j < data.columns.length; j++) {
                 var column = data.columns[j];
-                html += '<td class="b2bpress-column-' + column.key + '">' + (product[column.key] || '') + '</td>';
+                var cellValue = product[column.key];
+                var $td = $('<td>').addClass('b2bpress-column-' + column.key);
+
+                if (column.type === 'price') {
+                    // 价格：允许有限HTML（来自后端WooCommerce生成）
+                    $td.html(String(cellValue || ''));
+                } else {
+                    // 其他：纯文本输出
+                    $td.text(String(cellValue || ''));
+                }
+
+                $tr.append($td);
             }
-            
-            html += '</tr>';
+
+            $fragment.append($tr);
         }
-        
-        this.$tbody.html(html);
+
+        this.$tbody.empty().append($fragment);
         
         // 如果不显示图片，隐藏缩略图列
         if (data.show_images !== true) {
@@ -315,7 +369,7 @@
         
         // 上一页
         if (currentPage > 1) {
-            html += '<a href="#" class="b2bpress-pagination-prev" data-page="' + (currentPage - 1) + '">' + b2bpressPublic.i18n.prev_page + '</a>';
+            html += '<a href="#" class="b2bpress-pagination-prev" rel="prev" data-page="' + (currentPage - 1) + '">' + b2bpressPublic.i18n.prev_page + '</a>';
         }
         
         // 页码
@@ -331,7 +385,7 @@
         
         for (var i = startPage; i <= endPage; i++) {
             if (i === currentPage) {
-                html += '<span class="current">' + i + '</span>';
+                html += '<span class="current" aria-current="page">' + i + '</span>';
             } else {
                 html += '<a href="#" data-page="' + i + '">' + i + '</a>';
             }
@@ -346,7 +400,7 @@
         
         // 下一页
         if (currentPage < totalPages) {
-            html += '<a href="#" class="b2bpress-pagination-next" data-page="' + (currentPage + 1) + '">' + b2bpressPublic.i18n.next_page + '</a>';
+            html += '<a href="#" class="b2bpress-pagination-next" rel="next" data-page="' + (currentPage + 1) + '">' + b2bpressPublic.i18n.next_page + '</a>';
         }
         
         this.$paginationLinks.html(html);
@@ -355,13 +409,18 @@
         var self = this;
         this.$paginationLinks.find('a').on('click', function(e) {
             e.preventDefault();
-            self.currentPage = $(this).data('page');
-            self.loadTableData();
-            
-            // 滚动到表格顶部
-            $('html, body').animate({
-                scrollTop: self.$container.offset().top - 50
-            }, 500);
+            var go = function() {
+                self.currentPage = $(this).data('page');
+                self.loadTableData();
+                // 滚动到表格顶部
+                $('html, body').animate({
+                    scrollTop: self.$container.offset().top - 50
+                }, 500);
+            };
+            // 分页点击也适度防抖，避免快速连点
+            if (self._debounceTimer) { clearTimeout(self._debounceTimer); }
+            var link = this;
+            self._debounceTimer = setTimeout(function() { go.call(link); }, Math.min(self.debounceMs, 250));
         });
     };
     

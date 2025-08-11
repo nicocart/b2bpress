@@ -50,14 +50,22 @@ class B2BPress_WC_Lite {
             add_filter('woocommerce_product_get_manage_stock', '__return_false');
         }
         
-        // 禁用价格
+        // 禁用价格并输出占位
         if (isset($options['disable_prices']) && $options['disable_prices']) {
             remove_action('woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_price', 10);
             remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_price', 10);
-            add_filter('woocommerce_get_price_html', '__return_empty_string');
-            add_filter('woocommerce_variable_sale_price_html', '__return_empty_string');
-            add_filter('woocommerce_variable_price_html', '__return_empty_string');
-            add_filter('woocommerce_get_variation_price_html', '__return_empty_string');
+
+            $placeholder_cb = function($price, $product = null) {
+                if (is_user_logged_in()) {
+                    return __('面议', 'b2bpress');
+                }
+                return __('登录后可见', 'b2bpress');
+            };
+
+            add_filter('woocommerce_get_price_html', $placeholder_cb, 10, 2);
+            add_filter('woocommerce_variable_sale_price_html', $placeholder_cb, 10, 2);
+            add_filter('woocommerce_variable_price_html', $placeholder_cb, 10, 2);
+            add_filter('woocommerce_get_variation_price_html', $placeholder_cb, 10, 2);
         }
         
         // 禁用营销
@@ -65,6 +73,9 @@ class B2BPress_WC_Lite {
             add_filter('woocommerce_marketing_menu_items', '__return_empty_array');
             add_action('admin_menu', array($this, 'remove_marketing_menu'), 999);
         }
+
+        // 从导航菜单中移除购物车与结账页
+        add_filter('wp_nav_menu_objects', array($this, 'remove_cart_checkout_from_menu'), 10, 2);
     }
 
     /**
@@ -72,7 +83,9 @@ class B2BPress_WC_Lite {
      */
     public function disable_cart_page() {
         if (is_cart()) {
-            wp_redirect(home_url());
+            // 隐藏购物车端点：跳转到商店或首页
+            $redirect = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/');
+            wp_redirect($redirect);
             exit;
         }
     }
@@ -82,7 +95,8 @@ class B2BPress_WC_Lite {
      */
     public function disable_checkout_page() {
         if (is_checkout()) {
-            wp_redirect(home_url());
+            $redirect = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/');
+            wp_redirect($redirect);
             exit;
         }
     }
@@ -103,6 +117,40 @@ class B2BPress_WC_Lite {
      */
     public function remove_marketing_menu() {
         remove_submenu_page('woocommerce', 'wc-admin&path=/marketing');
+        // 同时隐藏购物车/结账菜单入口（如果存在）
+        remove_submenu_page('woocommerce', 'wc-admin&path=/checkout');
+        remove_submenu_page('woocommerce', 'wc-admin&path=/cart');
+    }
+
+    /**
+     * 从前端导航菜单中移除购物车与结账页面
+     *
+     * @param array $items
+     * @param object $args
+     * @return array
+     */
+    public function remove_cart_checkout_from_menu($items, $args) {
+        $options = get_option('b2bpress_options', array());
+        $remove = (isset($options['disable_cart']) && $options['disable_cart']) || (isset($options['disable_checkout']) && $options['disable_checkout']);
+        if (!$remove) {
+            return $items;
+        }
+
+        if (!function_exists('wc_get_page_id')) {
+            return $items;
+        }
+
+        $cart_id = wc_get_page_id('cart');
+        $checkout_id = wc_get_page_id('checkout');
+
+        $filtered = array();
+        foreach ($items as $item) {
+            if ((int)$item->object_id === (int)$cart_id || (int)$item->object_id === (int)$checkout_id) {
+                continue;
+            }
+            $filtered[] = $item;
+        }
+        return $filtered;
     }
 
     /**

@@ -54,6 +54,7 @@ class B2BPress_Cache {
                 // 同时存入对象缓存
                 $this->log_debug('从瞬态缓存获取成功，同时存入对象缓存: ' . $key);
                 wp_cache_set($key, $value, 'b2bpress');
+                $this->index_object_cache_key($key);
                 return $value;
             }
             
@@ -86,6 +87,7 @@ class B2BPress_Cache {
                 $this->log_debug('存入对象缓存失败: ' . $key);
             } else {
                 $this->log_debug('存入对象缓存成功: ' . $key);
+                $this->index_object_cache_key($key);
             }
             
             // 存入瞬态缓存
@@ -146,6 +148,13 @@ class B2BPress_Cache {
                 $this->log_debug('删除对象缓存失败: ' . $key);
             } else {
                 $this->log_debug('删除对象缓存成功: ' . $key);
+                // 同步更新索引
+                $index_key = 'b2bpress_object_cache_keys_index';
+                $keys = wp_cache_get($index_key, 'b2bpress');
+                if (is_array($keys) && isset($keys[$key])) {
+                    unset($keys[$key]);
+                    wp_cache_set($index_key, $keys, 'b2bpress');
+                }
             }
             
             // 删除瞬态缓存
@@ -164,7 +173,11 @@ class B2BPress_Cache {
                 $this->log_debug('删除瞬态缓存成功: ' . $transient_key);
             }
             
-            return $transient_result || $compressed_result || $object_cache_result;
+            $result_any = $transient_result || $compressed_result || $object_cache_result;
+            if ($result_any) {
+                $this->bump_last_changed();
+            }
+            return $result_any;
         } catch (Exception $e) {
             $this->log_debug('删除缓存过程中发生异常', $e->getMessage());
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -186,14 +199,15 @@ class B2BPress_Cache {
         $this->log_debug('开始删除前缀为 ' . $prefix . ' 的缓存');
         
         try {
-            // 删除瞬态缓存
+            // 删除瞬态缓存（仅删除与b2bpress相关的前缀）
             $query = $wpdb->prepare(
                 "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
                 '_transient_b2bpress_' . $prefix . '%',
                 '_transient_timeout_b2bpress_' . $prefix . '%'
             );
             
-            $this->log_debug('执行SQL: ' . $query);
+            // 避免在日志中直出完整SQL
+            $this->log_debug('执行前缀删除瞬态缓存（语句已屏蔽），前缀: ' . $prefix);
             $result = $wpdb->query($query);
             
             if ($result === false) {
@@ -202,17 +216,12 @@ class B2BPress_Cache {
             }
             
             $this->log_debug('删除瞬态缓存成功，影响行数: ' . $result);
-            
-            // 删除对象缓存（无法按前缀删除，只能刷新整个组）
-            $this->log_debug('刷新对象缓存');
-            $cache_flushed = wp_cache_flush();
-            
-            if ($cache_flushed === false) {
-                $this->log_debug('刷新对象缓存失败');
-                throw new Exception('刷新对象缓存失败');
-            }
+
+            // 精确删除对象缓存键：通过维护一个索引列表来定位并删除
+            $this->delete_object_cache_keys_by_prefix($prefix);
             
             $this->log_debug('前缀为 ' . $prefix . ' 的缓存删除完成');
+            $this->bump_last_changed();
         } catch (Exception $e) {
             $this->log_debug('删除前缀缓存过程中发生异常', $e->getMessage());
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -241,7 +250,8 @@ class B2BPress_Cache {
                 '_transient_timeout_b2bpress_' . $group . '%'
             );
             
-            $this->log_debug('执行SQL: ' . $query);
+            // 避免在日志中直出完整SQL
+            $this->log_debug('执行组删除瞬态缓存（语句已屏蔽），组: ' . $group);
             $result = $wpdb->query($query);
             
             if ($result === false) {
@@ -251,22 +261,71 @@ class B2BPress_Cache {
             
             $this->log_debug('删除瞬态缓存成功，影响行数: ' . $result);
             
-            // 删除对象缓存
-            $this->log_debug('刷新对象缓存');
-            $cache_flushed = wp_cache_flush();
-            
-            if ($cache_flushed === false) {
-                $this->log_debug('刷新对象缓存失败');
-                throw new Exception('刷新对象缓存失败');
-            }
+            // 精确删除对象缓存键：通过索引列表删除该组相关的键
+            $this->delete_object_cache_keys_by_prefix($group);
             
             $this->log_debug('组 ' . $group . ' 的缓存删除完成');
+            $this->bump_last_changed();
         } catch (Exception $e) {
             $this->log_debug('删除组缓存过程中发生异常', $e->getMessage());
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('B2BPress删除组缓存错误: ' . $e->getMessage() . ' [堆栈跟踪: ' . $e->getTraceAsString() . ']');
             }
             throw $e;
+        }
+    }
+
+    /**
+     * 维护对象缓存键索引，便于精确删除
+     *
+     * @param string $key
+     * @return void
+     */
+    private function index_object_cache_key($key) {
+        $index_key = 'b2bpress_object_cache_keys_index';
+        $keys = wp_cache_get($index_key, 'b2bpress');
+        if (!is_array($keys)) {
+            $keys = array();
+        }
+        if (!isset($keys[$key])) {
+            $keys[$key] = true;
+            wp_cache_set($index_key, $keys, 'b2bpress');
+        }
+    }
+
+    /**
+     * 根据前缀删除对象缓存键
+     *
+     * @param string $prefix
+     * @return void
+     */
+    private function delete_object_cache_keys_by_prefix($prefix) {
+        $index_key = 'b2bpress_object_cache_keys_index';
+        $keys = wp_cache_get($index_key, 'b2bpress');
+        if (!is_array($keys) || empty($keys)) {
+            return;
+        }
+        $updated = false;
+        foreach (array_keys($keys) as $key) {
+            if (strpos($key, $prefix) === 0) {
+                wp_cache_delete($key, 'b2bpress');
+                unset($keys[$key]);
+                $updated = true;
+            }
+        }
+        if ($updated) {
+            wp_cache_set($index_key, $keys, 'b2bpress');
+        }
+    }
+
+    /**
+     * bump last_changed，用于REST ETag/Last-Modified
+     */
+    public function bump_last_changed() {
+        try {
+            update_option('b2bpress_last_changed', (string) time(), false);
+        } catch (Exception $e) {
+            // 忽略
         }
     }
     
@@ -355,15 +414,8 @@ class B2BPress_Cache {
             } 
             // 两种nonce都验证失败
             else {
-                $this->log_debug('Nonce验证失败，提供的nonce: ' . (isset($_POST['nonce']) ? substr($_POST['nonce'], 0, 10) . '...' : '无'));
-                $this->log_debug('当前用户: ' . get_current_user_id() . ', 角色: ' . implode(', ', wp_get_current_user()->roles));
-                
-                // 创建新的nonce用于调试
-                $admin_nonce = wp_create_nonce('b2bpress-admin-nonce');
-                $public_nonce = wp_create_nonce('b2bpress-public-nonce');
-                $this->log_debug('新生成的管理员nonce: ' . substr($admin_nonce, 0, 10) . '...');
-                $this->log_debug('新生成的前端nonce: ' . substr($public_nonce, 0, 10) . '...');
-                
+                // 不在日志中输出任何 nonce 内容，统一提示
+                $this->log_debug('Nonce验证失败');
                 wp_send_json_error(__('安全验证失败，请刷新页面后重试', 'b2bpress'));
                 return;
             }

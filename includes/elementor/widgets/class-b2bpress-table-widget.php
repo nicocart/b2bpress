@@ -112,6 +112,65 @@ class B2BPress_Table_Widget extends \Elementor\Widget_Base {
                 'default' => 20,
             ]
         );
+
+        // 表格样式（与全局设置一致）
+        $this->add_control(
+            'style',
+            [
+                'label' => __('表格样式', 'b2bpress'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'inherit' => __('默认（继承主题）', 'b2bpress'),
+                    'classic' => __('经典', 'b2bpress'),
+                    'modern' => __('现代', 'b2bpress'),
+                    'striped' => __('条纹', 'b2bpress'),
+                ],
+                'default' => 'inherit',
+            ]
+        );
+
+        // 是否显示图片（覆盖全局）
+        $this->add_control(
+            'show_images',
+            [
+                'label' => __('显示产品图片', 'b2bpress'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('显示', 'b2bpress'),
+                'label_off' => __('隐藏', 'b2bpress'),
+                'return_value' => 'yes',
+                'default' => '',
+            ]
+        );
+
+        // 表格风格控件
+        $this->add_control(
+            'style',
+            [
+                'label' => __('风格', 'b2bpress'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'inherit' => __('继承', 'b2bpress'),
+                    'classic' => __('经典', 'b2bpress'),
+                    'modern' => __('现代', 'b2bpress'),
+                ],
+                'default' => 'inherit',
+                'description' => __('选择表格的展示风格', 'b2bpress'),
+            ]
+        );
+
+        // 是否显示图片
+        $this->add_control(
+            'show_images',
+            [
+                'label' => __('显示图片', 'b2bpress'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('是', 'b2bpress'),
+                'label_off' => __('否', 'b2bpress'),
+                'return_value' => 'yes',
+                'default' => '',
+                'description' => __('是否在表格中显示产品缩略图', 'b2bpress'),
+            ]
+        );
         
         $this->end_controls_section();
         
@@ -273,15 +332,19 @@ class B2BPress_Table_Widget extends \Elementor\Widget_Base {
             $category = '';
         }
         
-        // 获取表格样式
-        $style = $settings['style'];
+        // 获取表格样式（默认 inherit）
+        $style = isset($settings['style']) && !empty($settings['style']) ? $settings['style'] : 'inherit';
         
         // 获取每页显示数量
         $per_page = $settings['per_page'];
         
-        // 获取是否显示图片
+        // 获取是否显示图片（优先控件，其次全局设置）
         $global_options = get_option('b2bpress_options', array());
-        $show_images = isset($global_options['show_product_images']) ? 'true' : 'false';
+        if (isset($settings['show_images']) && $settings['show_images'] === 'yes') {
+            $show_images = 'true';
+        } else {
+            $show_images = isset($global_options['show_product_images']) && $global_options['show_product_images'] ? 'true' : 'false';
+        }
         
         // 生成短代码
         $shortcode = '[b2bpress_table';
@@ -298,6 +361,10 @@ class B2BPress_Table_Widget extends \Elementor\Widget_Base {
             $shortcode .= ' per_page="' . esc_attr($per_page) . '"';
         }
         
+        if (!empty($style)) {
+            $shortcode .= ' style="' . esc_attr($style) . '"';
+        }
+
         $shortcode .= ' show_images="' . esc_attr($show_images) . '"';
         
         $shortcode .= ']';

@@ -420,6 +420,11 @@ class B2BPress_Admin {
                 'saving' => __('保存中...', 'b2bpress'),
                 'saved' => __('已保存', 'b2bpress'),
                 'error' => __('发生错误', 'b2bpress'),
+                'error_delete_table' => __('删除表格时发生错误', 'b2bpress'),
+                'copied' => __('已复制', 'b2bpress'),
+                'refreshing' => __('刷新中...', 'b2bpress'),
+                'refreshed' => __('已刷新', 'b2bpress'),
+                'error_refresh_cache' => __('刷新缓存时发生错误', 'b2bpress'),
             ),
         ));
         
