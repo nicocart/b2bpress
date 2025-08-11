@@ -1,0 +1,353 @@
+/**
+ * B2BPress 后台样式
+ */
+
+/* 仪表盘 */
+.b2bpress-dashboard-wrapper {
+    margin-top: 20px;
+}
+
+.b2bpress-dashboard-header {
+    background-color: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.b2bpress-dashboard-welcome h2 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.b2bpress-dashboard-main {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.b2bpress-dashboard-column {
+    flex: 1;
+    min-width: 300px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+.b2bpress-dashboard-card {
+    background-color: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.b2bpress-dashboard-card h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    color: #23282d;
+}
+
+.b2bpress-dashboard-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+    padding: 0;
+}
+
+.b2bpress-dashboard-stats li {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 10px;
+    margin: 0 10px 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    list-style: none;
+}
+
+.b2bpress-dashboard-stat-count {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #0073aa;
+}
+
+.b2bpress-dashboard-stat-label {
+    display: block;
+    font-size: 14px;
+    color: #646970;
+}
+
+.b2bpress-dashboard-recent {
+    margin: 0;
+    padding: 0;
+}
+
+.b2bpress-dashboard-recent li {
+    list-style: none;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.b2bpress-dashboard-recent li:last-child {
+    border-bottom: none;
+}
+
+.b2bpress-dashboard-date {
+    color: #646970;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+/* 表格管理 */
+.b2bpress-tables-wrapper {
+    margin-top: 20px;
+}
+
+.b2bpress-no-tables {
+    background-color: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}
+
+.b2bpress-tables-edit-wrapper {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.b2bpress-tables-edit-main {
+    flex: 3;
+    min-width: 500px;
+    padding-right: 20px;
+}
+
+.b2bpress-tables-edit-sidebar {
+    flex: 1;
+    min-width: 250px;
+}
+
+.b2bpress-tables-edit-field {
+    margin-bottom: 15px;
+}
+
+.b2bpress-tables-edit-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.b2bpress-tables-edit-field input[type="text"],
+.b2bpress-tables-edit-field select {
+    width: 100%;
+    max-width: 400px;
+}
+
+#b2bpress-table-columns-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.b2bpress-table-columns-container {
+    flex: 1;
+    min-width: 250px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+.b2bpress-table-columns-list {
+    background-color: #f9f9f9;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 10px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.b2bpress-table-columns-list li {
+    background-color: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    cursor: move;
+}
+
+.b2bpress-table-column-label {
+    flex: 2;
+    font-weight: 600;
+}
+
+.b2bpress-table-column-type {
+    flex: 1;
+    color: #646970;
+    font-size: 12px;
+}
+
+.b2bpress-table-column-add,
+.b2bpress-table-column-remove {
+    margin-left: auto !important;
+}
+
+.b2bpress-table-column-placeholder {
+    background-color: #f0f0f0;
+    border: 1px dashed #ccd0d4;
+    border-radius: 4px;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+/* 设置页面 */
+.b2bpress-settings-info {
+    margin-top: 20px;
+    max-width: 800px;
+}
+
+/* 向导页面 */
+.b2bpress-wizard-wrapper {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.b2bpress-wizard-header {
+    padding: 20px;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.b2bpress-wizard-header h2 {
+    margin-top: 0;
+}
+
+.b2bpress-wizard-steps {
+    padding: 20px;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.b2bpress-wizard-steps-list {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+}
+
+.b2bpress-wizard-step {
+    flex: 1;
+    text-align: center;
+    list-style: none;
+    position: relative;
+}
+
+.b2bpress-wizard-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #ccd0d4;
+    z-index: 1;
+}
+
+.b2bpress-wizard-step-number {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    background-color: #ccd0d4;
+    color: #fff;
+    font-weight: bold;
+    position: relative;
+    z-index: 2;
+}
+
+.b2bpress-wizard-step.active .b2bpress-wizard-step-number {
+    background-color: #0073aa;
+}
+
+.b2bpress-wizard-step-title {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #646970;
+}
+
+.b2bpress-wizard-step.active .b2bpress-wizard-step-title {
+    color: #0073aa;
+    font-weight: bold;
+}
+
+.b2bpress-wizard-content {
+    padding: 20px;
+    min-height: 300px;
+}
+
+.b2bpress-wizard-step-content {
+    display: none;
+}
+
+.b2bpress-wizard-step-content.active {
+    display: block;
+}
+
+.b2bpress-wizard-options {
+    margin-top: 20px;
+}
+
+.b2bpress-wizard-options label {
+    display: block;
+    margin-bottom: 15px;
+}
+
+.b2bpress-wizard-options .description {
+    display: block;
+    margin-top: 5px;
+    color: #646970;
+    font-size: 12px;
+}
+
+.b2bpress-wizard-table-columns {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.b2bpress-wizard-table-columns-list label {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.b2bpress-wizard-footer {
+    padding: 20px;
+    border-top: 1px solid #ccd0d4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.b2bpress-wizard-footer-dots {
+    display: flex;
+}
+
+.b2bpress-wizard-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccd0d4;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.b2bpress-wizard-dot.active {
+    background-color: #0073aa;
+} 

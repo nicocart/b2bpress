@@ -1,0 +1,42 @@
+/**
+ * B2BPress Elementor前端样式
+ */
+
+/* Elementor编辑器中的表格占位符 */
+.elementor-b2bpress-table-placeholder {
+    background-color: #f5f5f5;
+    border: 1px dashed #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}
+
+.elementor-b2bpress-table-placeholder-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.elementor-b2bpress-table-placeholder-description {
+    font-size: 14px;
+    color: #646970;
+}
+
+/* Elementor小部件样式覆盖 */
+.elementor-widget-b2bpress_table .b2bpress-table-container {
+    margin-bottom: 0;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+    .elementor-widget-b2bpress_table .b2bpress-table th,
+    .elementor-widget-b2bpress_table .b2bpress-table td {
+        padding: 8px;
+    }
+}
+
+/* RTL支持 */
+.rtl .elementor-widget-b2bpress_table .b2bpress-table th,
+.rtl .elementor-widget-b2bpress_table .b2bpress-table td {
+    text-align: right;
+} 

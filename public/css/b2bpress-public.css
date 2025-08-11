@@ -1,0 +1,532 @@
+/**
+ * B2BPress 前端样式
+ */
+
+/* 表格容器 */
+.b2bpress-table-container {
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+/* 表格搜索 */
+.b2bpress-table-search {
+    margin-bottom: 20px;
+}
+
+.b2bpress-search-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px 12px; /* 减少内边距 */
+    border: 1px solid #eaeaea;
+    border-radius: 0; /* 移除圆角 */
+    transition: all 0.3s ease;
+    font-size: 14px; /* 减小字体大小 */
+}
+
+.b2bpress-search-input:focus {
+    border-color: #000000; /* 与表头颜色一致 */
+    box-shadow: none; /* 移除阴影 */
+    outline: none;
+}
+
+/* 表格包装器 */
+.b2bpress-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    /* 移除圆角 */
+    border-radius: 0;
+    /* 移除阴影 */
+    box-shadow: none;
+    position: relative;
+    background-color: #fff;
+    -webkit-overflow-scrolling: touch; /* 提高iOS滚动体验 */
+}
+
+/* 默认表格样式 - 基本样式 */
+.b2bpress-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 0;
+    font-size: 14px; /* 减小字体大小 */
+    color: inherit; /* 文字颜色继承 */
+    table-layout: fixed; /* 改为固定布局，使列宽更均匀 */
+}
+
+/* 继承主题样式 */
+.b2bpress-table-inherit {
+    /* 最小样式，允许主题样式覆盖 */
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.b2bpress-table-inherit th,
+.b2bpress-table-inherit td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* 经典表格样式 */
+.b2bpress-table.b2bpress-table-classic {
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+.b2bpress-table.b2bpress-table-classic th {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.b2bpress-table.b2bpress-table-classic td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.b2bpress-table.b2bpress-table-classic tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.b2bpress-table.b2bpress-table-classic tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* 现代表格样式 */
+.b2bpress-table.b2bpress-table-modern {
+    border-collapse: separate;
+    border-spacing: 0;
+    /* 移除阴影 */
+    box-shadow: none;
+    /* 移除圆角 */
+    border-radius: 0;
+    overflow: hidden;
+    border: 1px solid #eaeaea; /* 减小表格边框粗细，使用更浅的颜色 */
+}
+
+.b2bpress-table.b2bpress-table-modern th {
+    /* 表头改为黑色 */
+    background: #000000;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 12px 12px; /* 减少内边距 */
+    border-bottom: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.b2bpress-table.b2bpress-table-modern td {
+    padding: 10px 12px; /* 减少内边距 */
+    border-bottom: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
+    transition: all 0.2s ease;
+}
+
+.b2bpress-table.b2bpress-table-modern tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 表体白灰相间 */
+.b2bpress-table.b2bpress-table-modern tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.b2bpress-table.b2bpress-table-modern tbody tr:nth-child(even) {
+    background-color: #f7f7f7; /* 调整灰色，使其更柔和 */
+}
+
+.b2bpress-table.b2bpress-table-modern tbody tr:hover {
+    /* 悬停时使用#ededed颜色 */
+    background-color: #ededed;
+}
+
+.b2bpress-table.b2bpress-table-modern .b2bpress-column-name a {
+    color: #aa0000; /* 链接颜色继承 */
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.b2bpress-table.b2bpress-table-modern .b2bpress-column-name a:hover {
+    color: inherit; /* 悬停时链接颜色继承 */
+    text-decoration: underline;
+}
+
+/* 确保表头和表体列宽一致 */
+.b2bpress-table th,
+.b2bpress-table td {
+    padding: 10px 12px; /* 减少内边距 */
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+.b2bpress-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #444;
+    border-top: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
+    border-bottom: 1px solid #d0d0d0; /* 表头底部边框略深，但仍然较细 */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.b2bpress-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.b2bpress-table tbody tr:hover {
+    background-color: #f5f9fd;
+}
+
+/* 条纹表格样式 - 更新 */
+.b2bpress-table-striped tbody tr:nth-child(odd) {
+    background-color: #f8f9fa;
+}
+
+.b2bpress-table-striped tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+.b2bpress-table-striped tbody tr:hover {
+    background-color: #f0f7ff;
+}
+
+/* 卡片表格样式 - 更新 */
+.b2bpress-table-card {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    background: transparent;
+}
+
+.b2bpress-table-card th {
+    border: none;
+    border-bottom: 2px solid #e0e0e0;
+    background-color: transparent;
+    padding-bottom: 15px;
+}
+
+.b2bpress-table-card tbody tr {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    background-color: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.b2bpress-table-card tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.b2bpress-table-card td {
+    border: none;
+    background-color: #fff;
+}
+
+.b2bpress-table-card td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.b2bpress-table-card td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* 表格列样式 */
+.b2bpress-column-thumbnail {
+    width: 80px;
+}
+
+.b2bpress-column-thumbnail img {
+    max-width: 60px;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+.b2bpress-column-thumbnail img:hover {
+    transform: scale(1.1);
+}
+
+.b2bpress-column-name {
+    min-width: 200px;
+    font-weight: 500;
+}
+
+.b2bpress-column-name a {
+    color: inherit; /* 链接颜色继承 */
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.b2bpress-column-name a:hover {
+    color: inherit; /* 悬停时链接颜色继承 */
+    text-decoration: underline;
+}
+
+/* 表格分页 */
+.b2bpress-table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    font-size: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.b2bpress-table-pagination-info {
+    color: #666;
+}
+
+.b2bpress-table-pagination-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.b2bpress-table-pagination-links a,
+.b2bpress-table-pagination-links span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #eaeaea;
+    border-radius: 0; /* 移除圆角 */
+    text-decoration: none;
+    color: inherit; /* 继承颜色 */
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.b2bpress-table-pagination-links a:hover {
+    background-color: #ededed; /* 与表格悬停颜色一致 */
+    border-color: #d0d0d0;
+}
+
+.b2bpress-table-pagination-links .current {
+    background-color: #000000; /* 与表头颜色一致 */
+    color: #fff;
+    border-color: #000000;
+}
+
+/* 加载状态 */
+.b2bpress-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-style: italic;
+}
+
+/* 错误消息 */
+.b2bpress-error {
+    color: #d63638;
+    padding: 15px;
+    border: 1px solid #eaeaea;
+    border-radius: 0; /* 移除圆角 */
+    background-color: #fff;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* 表格操作 */
+.b2bpress-table-actions {
+    margin-top: 20px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.b2bpress-table-actions .button {
+    padding: 8px 15px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 992px) {
+    .b2bpress-table-wrapper {
+        /* 移除圆角 */
+        border-radius: 0;
+        /* 移除阴影 */
+        box-shadow: none;
+    }
+    
+    .b2bpress-table th,
+    .b2bpress-table td {
+        padding: 8px 10px; /* 进一步减少移动端内边距 */
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .b2bpress-search-input {
+        max-width: 100%;
+    }
+    
+    .b2bpress-table th,
+    .b2bpress-table td {
+        padding: 8px 8px; /* 进一步减少内边距 */
+        font-size: 13px; /* 减小字体大小 */
+    }
+    
+    .b2bpress-table-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .b2bpress-column-name {
+        min-width: 150px;
+    }
+    
+    /* 改进移动端表格显示 */
+    .b2bpress-table {
+        table-layout: auto; /* 在移动端恢复自动布局，确保内容可见 */
+    }
+    
+    .b2bpress-table th,
+    .b2bpress-table td {
+        white-space: nowrap;
+    }
+    
+    /* 卡片样式在移动端的特殊处理 */
+    .b2bpress-table-card tbody tr {
+        margin-bottom: 8px;
+    }
+}
+
+/* 小屏幕设备的额外优化 */
+@media screen and (max-width: 480px) {
+    .b2bpress-table th,
+    .b2bpress-table td {
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+    
+    .b2bpress-table-pagination-links a,
+    .b2bpress-table-pagination-links span {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+    }
+}
+
+/* RTL支持 */
+.rtl .b2bpress-table th,
+.rtl .b2bpress-table td {
+    text-align: right;
+}
+
+.rtl .b2bpress-table-pagination {
+    flex-direction: row-reverse;
+}
+
+.rtl .b2bpress-table-actions {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+/* 辅助功能 */
+.b2bpress-table caption {
+    caption-side: top;
+    text-align: left;
+    padding: 10px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 空状态 */
+.b2bpress-table-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: inherit; /* 继承颜色 */
+    background-color: #f7f7f7; /* 与表格灰色背景一致 */
+    border-radius: 0; /* 移除圆角 */
+    font-style: italic;
+    border: 1px solid #eaeaea; /* 添加边框 */
+} 
+
+/* 添加表格横向滚动时表头固定的样式 */
+.b2bpress-table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 确保表格内容可以滚动查看 */
+.b2bpress-table th,
+.b2bpress-table td {
+    min-width: 100px; /* 设置最小宽度确保内容可见 */
+}
+
+/* 特定列的宽度调整 */
+.b2bpress-column-sku {
+    min-width: 120px;
+    text-align: center; /* 居中对齐 */
+}
+
+.b2bpress-column-price {
+    min-width: 100px;
+    text-align: right; /* 右对齐 */
+}
+
+.b2bpress-column-stock {
+    min-width: 100px;
+    text-align: right; /* 右对齐 */
+}
+
+/* 高亮当前排序列 */
+.b2bpress-table th.sorted {
+    background-color: #333; /* 深色背景 */
+    color: #fff; /* 白色文字 */
+}
+
+/* 添加排序图标 */
+.b2bpress-table th.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 25px;
+}
+
+.b2bpress-table th.sortable:after {
+    content: "⇅";
+    position: absolute;
+    right: 8px;
+    color: #999;
+    font-size: 14px;
+}
+
+.b2bpress-table th.sorted.asc:after {
+    content: "↑";
+    color: #fff; /* 白色图标 */
+}
+
+.b2bpress-table th.sorted.desc:after {
+    content: "↓";
+    color: #fff; /* 白色图标 */
+} 
+
+/* 预渲染表格样式 */
+.b2bpress-table-prerendered {
+    width: 100%;
+}
+
+.b2bpress-admin-controls {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.b2bpress-no-search-results td {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+} 
