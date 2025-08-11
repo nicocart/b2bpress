@@ -1,126 +1,118 @@
-# B2BPress - WordPress B2B电子商务解决方案
+# B2BPress - WordPress B2B eCommerce Solution
 
-B2BPress是一个基于WooCommerce的WordPress插件，专为B2B电子商务设计。它精简了WooCommerce的功能，并提供了强大的产品表格生成器，使您可以轻松创建和管理B2B产品目录，适用于需要大量产品表格展示。
-![截图](/res/image/1.png)
+[中文 README](README-ZH.md)
 
-## 主要功能
+B2BPress is a WooCommerce-based WordPress plugin designed for B2B eCommerce. It streamlines WooCommerce for wholesale scenarios and ships with a powerful Product Table Generator to build and manage large B2B product catalogs.
 
-### WooCommerce "精简模式"
-可选逐项关闭：购物车、收银台、优惠券、库存、价格、营销、结账、邮件模板、前端CSS/JS。
+![Screenshot](/res/image/1.png)
 
-提供"向导"引导站点管理员，一键切换到B2B模式并自动检测与第三方插件冲突。
+## Key Features
 
-针对HPOS（High-Performance Order Storage）声明兼容，并在检测到旧版订单表结构时提醒升级。
+### WooCommerce "Lite Mode"
+- Toggle off non-B2B features: cart, checkout, coupons, inventory, prices, marketing, email templates, and frontend CSS/JS
+- Setup Wizard guides admins to switch into B2B mode and auto-detect conflicts with third-party plugins
+- Declares compatibility with HPOS (High-Performance Order Storage) and prompts upgrade if legacy order tables are detected
 
-### 产品表格生成器
-向导式UI：
+### Product Table Generator
+- Guided UI steps:
+  1. Choose product categories
+  2. Load all attributes in the category (including global attributes and custom taxonomies, e.g., brand)
+  3. Multi-select and drag to sort columns
+  4. Choose a table style
+- Columns: product name (link to single product), thumbnail, SKU, custom attributes, hierarchical categories, stock status, and more
+- Features: pagination, column sorting, frontend search, optional CSV export
+- Preset styles: minimal, striped, card
+- Fully translatable strings; RTL-friendly headers
 
-1. 选择产品分类
-2. 读取该分类下所有属性（含全局属性、品牌等自定义taxonomy）
-3. 多选+拖拽排序
-4. 选择表格样式
+### Display Options
+- Shortcode:
 
-数据列：产品名称（可点击进入单品页）、缩略图、SKU、自定义属性、多级分类、库存状态等。
+```
+[b2bpress_table id="123" style="striped" category="widgets" per_page="50"]
+```
 
-支持分页、列排序、前端搜索、可选导出CSV。
+- Elementor Widget: live preview in editor; create/select tables directly
 
-三套预设外观（简洁、行条纹、卡片化）。
+### Data Sync and Caching
+- Listens to product change hooks; invalidates cache precisely when needed
+- Cache layers: WordPress Object Cache (keys include category + attribute hash); Transients as fallback; automatically uses Redis/Memcached if enabled
+- Admin tools: "Refresh Tables Now" button; WP-Cron scheduled rebuilds
 
-所有字符串可通过PO/MO翻译；表头支持RTL。
+### Permissions and Roles
+- Only users with `manage_woocommerce` or custom capability `manage_b2bpress` can edit tables
+- Optional "logged-in only" visibility and role-based column hiding
 
-### 展示方式
-短码：`[b2bpress_table id="123" style="striped" category="widgets" per_page="50"]`
+### Developer Extensibility
+- Action hooks: `b2bpress_table_before_render`, `b2bpress_table_after_render`
+- Filters: `b2bpress_column_value_$attribute_slug`, `b2bpress_table_styles`
+- REST API: `/wp-json/b2bpress/v1/tables` (CRUD) for headless frontends and mobile apps
 
-Elementor小工具：在编辑面板显示实时预览；用户可直接新建/选择现有表格。
-
-### 数据同步与缓存
-监听产品变更钩子；若命中则使缓存失效。
-
-缓存层级：对象缓存（wp_cache_set），键名含分类+属性哈希；瞬态缓存（set_transient）作为后备；站点启用Redis/Memcached时自动适配。
-
-后台提供"立即刷新表格"按钮与WP-Cron定时重建。
-
-### 权限与多角色
-仅manage_woocommerce或自定义能力manage_b2bpress的用户可编辑表格。
-
-可选前端"仅登录可见"与基于用户角色隐藏列。
-
-### 开发者扩展点
-动作钩子：b2bpress_table_before_render, b2bpress_table_after_render.
-
-过滤器：b2bpress_column_value_$attribute_slug, b2bpress_table_styles.
-
-REST API：/wp-json/b2bpress/v1/tables（CRUD），方便第三方前端或移动端调用。
-
-## 系统要求
+## Requirements
 
 - WordPress 6.5+
 - WooCommerce 8.7+
 - PHP 8.0+
 
-## 安装
+## Installation
 
-1. 下载插件ZIP文件
-2. 在WordPress后台进入"插件" > "安装插件"
-3. 点击"上传插件"按钮，选择下载的ZIP文件
-4. 安装完成后，激活插件
-5. 进入"B2BPress" > "设置向导"，按照向导完成初始设置
+1. Download the plugin ZIP
+2. In WordPress Admin, go to Plugins > Add New
+3. Click "Upload Plugin" and select the ZIP
+4. Install and activate
+5. Go to "B2BPress" > "Setup Wizard" and complete initial configuration
 
-## 使用方法
+## Usage
 
-### 创建表格
+### Create a Table
+1. Go to "B2BPress" > "Tables"
+2. Click "Add Table"
+3. Enter a title and choose categories
+4. Select columns and drag to reorder
+5. Choose a style
+6. Click "Create Table"
 
-1. 进入"B2BPress" > "表格管理"
-2. 点击"添加表格"按钮
-3. 输入表格标题，选择产品分类
-4. 选择要显示的列，可以拖动排序
-5. 选择表格样式
-6. 点击"创建表格"按钮
+### Display a Table in a Page or Post
 
-### 在页面或文章中显示表格
-
-使用短代码：
+Use the shortcode:
 
 ```
 [b2bpress_table id="123"]
 ```
 
-可选参数：
+Optional parameters:
+- `id`: table ID (required)
+- `style`: table style (`default`, `striped`, `card`)
+- `per_page`: products per page
 
-- `id`：表格ID（必填）
-- `style`：表格样式（default、striped、card）
-- `per_page`：每页显示的产品数量
+### Use in Elementor
+1. In the editor, add the "B2B Product Table" widget
+2. Select the table in the widget settings
+3. Adjust style and options as needed
 
-### 在Elementor中使用
+## Support
 
-1. 编辑页面时，添加"B2B产品表格"小部件
-2. 在小部件设置中选择表格
-3. 根据需要调整表格样式和其他设置
+If you have questions or need help, please contact our support team.
 
-## 支持
+## License
 
-如果您有任何问题或需要帮助，请联系我们的支持团队。
+GPL v2 or later
 
-## 许可证
-
-GPL v2 或更高版本
-
-## 更新日志
+## Changelog
 
 ### 1.0.1 - 2025-08-11
-- 修复：移除重复的全局激活/停用钩子，避免重复执行激活逻辑
-- 安全：表格单元格输出增加转义与 HTML 白名单，降低 XSS 风险
-- 性能/稳定：缓存清理不再使用全站对象缓存 flush，改为精确按前缀/组删除
-- 体验：表头与分页增加可访问性属性；预渲染表格输出更安全
+- Fix: Removed duplicate global activation/deactivation hooks to avoid running activation logic twice
+- Security: Escaped table cell output and allowlisted HTML to reduce XSS risk
+- Performance/Stability: Replaced full object cache flush with precise prefix/group-based invalidation
+- UX: Added accessibility attributes to table headers and pagination; safer pre-rendered output
 
 ### 1.0.0 - 2025-08-11
-- 首次发布
-- WooCommerce 精简模式（可配置关闭购物车/收银台/优惠券/库存/价格/营销/结账/邮件模板/前端CSS与JS）
-- 产品表格生成器（向导式配置，多列/排序，分页，搜索，可选CSV导出）
-- Elementor 小工具（编辑面板实时预览，支持新建/选择表格）
-- 缓存与同步（对象缓存与瞬态缓存、WP-Cron 定时重建、后台一键刷新）
-- 权限与可见性（仅管理能力可编辑，前端登录可见与基于角色隐藏列）
-- 开发者扩展点（动作钩子与过滤器）
-- REST API `/wp-json/b2bpress/v1/tables`（CRUD）
-- HPOS 兼容声明
+- Initial release
+- WooCommerce Lite Mode (toggle cart/checkout/coupons/stock/prices/marketing/emails/frontend CSS/JS)
+- Product Table Generator (wizard UI, multi-column/sorting, pagination, search, optional CSV export)
+- Elementor widget (live preview, create/select tables)
+- Caching and sync (object cache + transients, WP-Cron scheduled rebuilds, admin one-click refresh)
+- Permissions and visibility (capability-gated editing, logged-in visibility, role-based column hiding)
+- Developer hooks and filters
+- REST API `/wp-json/b2bpress/v1/tables` (CRUD)
+- HPOS compatibility declaration
 
