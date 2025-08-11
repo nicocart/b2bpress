@@ -126,4 +126,3 @@ GPL v2 或更高版本
 - REST API `/wp-json/b2bpress/v1/tables`（CRUD）
 - HPOS 兼容声明
 
-

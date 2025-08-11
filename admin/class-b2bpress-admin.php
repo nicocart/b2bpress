@@ -406,7 +406,7 @@ class B2BPress_Admin {
         wp_register_script(
             'b2bpress-admin',
             B2BPRESS_PLUGIN_URL . 'admin/js/b2bpress-admin.js',
-            array('jquery'),
+            array('jquery', 'jquery-ui-sortable'),
             B2BPRESS_VERSION,
             true
         );
