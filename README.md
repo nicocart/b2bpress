@@ -1,6 +1,7 @@
 # B2BPress - WordPress B2B电子商务解决方案
 
 B2BPress是一个基于WooCommerce的WordPress插件，专为B2B电子商务设计。它精简了WooCommerce的功能，并提供了强大的产品表格生成器，使您可以轻松创建和管理B2B产品目录，适用于需要大量产品表格展示。
+![截图](/res/image/1.png)
 
 ## 主要功能
 
