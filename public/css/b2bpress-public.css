@@ -66,91 +66,64 @@
     text-align: left;
 }
 
-/* 经典表格样式 */
-.b2bpress-table.b2bpress-table-classic {
-    border-collapse: collapse;
-    border: 1px solid #ddd;
-}
-
-.b2bpress-table.b2bpress-table-classic th {
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    padding: 10px;
-    font-weight: bold;
-    text-align: left;
-}
-
-.b2bpress-table.b2bpress-table-classic td {
-    border: 1px solid #ddd;
-    padding: 10px;
-}
-
-.b2bpress-table.b2bpress-table-classic tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.b2bpress-table.b2bpress-table-classic tbody tr:hover {
-    background-color: #f0f0f0;
-}
-
-/* 现代表格样式 */
-.b2bpress-table.b2bpress-table-modern {
+/* ShadCN/UI 风格 */
+.b2bpress-table.b2bpress-table-shadcn {
     border-collapse: separate;
     border-spacing: 0;
-    /* 移除阴影 */
-    box-shadow: none;
-    /* 移除圆角 */
-    border-radius: 0;
-    overflow: hidden;
-    border: 1px solid #eaeaea; /* 减小表格边框粗细，使用更浅的颜色 */
+    width: 100%;
+    background: #fff;
 }
-
-.b2bpress-table.b2bpress-table-modern th {
-    /* 表头改为黑色 */
-    background: #000000;
-    color: #ffffff;
+.b2bpress-table.b2bpress-table-shadcn thead th {
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
     font-weight: 600;
-    padding: 12px 12px; /* 减少内边距 */
-    border-bottom: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
-    text-transform: uppercase;
+    padding: 12px;
+}
+.b2bpress-table.b2bpress-table-shadcn tbody td {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 12px;
+}
+.b2bpress-table.b2bpress-table-shadcn tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* 干净（无边框） */
+.b2bpress-table.b2bpress-table-clean {
+    border-collapse: collapse;
+}
+.b2bpress-table.b2bpress-table-clean thead th {
+    background: transparent;
+    color: inherit;
+    font-weight: 600;
+    padding: 10px 12px;
+}
+.b2bpress-table.b2bpress-table-clean tbody td {
+    padding: 10px 12px;
+    border: none;
+}
+.b2bpress-table.b2bpress-table-clean tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* 描边表格 */
+.b2bpress-table.b2bpress-table-bordered {
+    border-collapse: collapse;
+    border: 1px solid #e5e7eb;
+}
+.b2bpress-table.b2bpress-table-bordered th,
+.b2bpress-table.b2bpress-table-bordered td {
+    border: 1px solid #e5e7eb;
+}
+
+/* 紧凑密集 */
+.b2bpress-table.b2bpress-table-compact {
+    border-collapse: collapse;
     font-size: 13px;
-    letter-spacing: 0.5px;
 }
-
-.b2bpress-table.b2bpress-table-modern td {
-    padding: 10px 12px; /* 减少内边距 */
-    border-bottom: 1px solid #eaeaea; /* 减小分割线粗细，使用更浅的颜色 */
-    transition: all 0.2s ease;
-}
-
-.b2bpress-table.b2bpress-table-modern tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* 表体白灰相间 */
-.b2bpress-table.b2bpress-table-modern tbody tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.b2bpress-table.b2bpress-table-modern tbody tr:nth-child(even) {
-    background-color: #f7f7f7; /* 调整灰色，使其更柔和 */
-}
-
-.b2bpress-table.b2bpress-table-modern tbody tr:hover {
-    /* 悬停时使用#ededed颜色 */
-    background-color: #ededed;
-}
-
-.b2bpress-table.b2bpress-table-modern .b2bpress-column-name a {
-    color: #aa0000; /* 链接颜色继承 */
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.b2bpress-table.b2bpress-table-modern .b2bpress-column-name a:hover {
-    color: inherit; /* 悬停时链接颜色继承 */
-    text-decoration: underline;
+.b2bpress-table.b2bpress-table-compact th,
+.b2bpress-table.b2bpress-table-compact td {
+    padding: 6px 8px;
 }
 
 /* 确保表头和表体列宽一致 */

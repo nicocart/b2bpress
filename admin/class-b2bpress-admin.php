@@ -237,9 +237,11 @@ class B2BPress_Admin {
                 'label_for' => 'default_table_style',
                 'description' => __('选择默认表格样式', 'b2bpress'),
                 'options' => array(
-                    'inherit' => __('默认（继承主题）', 'b2bpress'),
-                    'classic' => __('经典', 'b2bpress'),
-                    'modern' => __('现代', 'b2bpress'),
+                    'inherit' => __('继承主题', 'b2bpress'),
+                    'shadcn' => __('ShadCN/UI 风格', 'b2bpress'),
+                    'clean' => __('干净（无边框）', 'b2bpress'),
+                    'bordered' => __('描边表格', 'b2bpress'),
+                    'compact' => __('紧凑密集', 'b2bpress'),
                 ),
             )
         );
@@ -489,26 +491,67 @@ class B2BPress_Admin {
      * @return array 清理后的数据
      */
     public function sanitize_settings($input) {
-        // 获取旧设置
+        // 旧设置用于对比是否需要清缓存
         $old_options = get_option('b2bpress_options', array());
-        
-        // 检查表格相关设置是否发生变化
+
+        $sanitized = array();
+
+        // 布尔选项
+        $boolean_keys = array(
+            'disable_cart', 'disable_checkout', 'disable_coupons', 'disable_inventory',
+            'disable_prices', 'disable_marketing', 'disable_css_js', 'show_product_images', 'login_required'
+        );
+        foreach ($boolean_keys as $key) {
+            $sanitized[$key] = isset($input[$key]) ? 1 : 0;
+        }
+
+        // 默认表格样式（白名单）
+        $style = isset($input['default_table_style']) ? sanitize_text_field($input['default_table_style']) : '';
+        $allowed_styles = array('inherit', 'shadcn', 'clean', 'bordered', 'compact');
+        $sanitized['default_table_style'] = in_array($style, $allowed_styles, true) ? $style : 'inherit';
+
+        // 默认每页数量（范围限制）
+        $per_page = isset($input['default_per_page']) ? absint($input['default_per_page']) : 20;
+        if ($per_page < 5) { $per_page = 5; }
+        if ($per_page > 100) { $per_page = 100; }
+        $sanitized['default_per_page'] = $per_page;
+
+        // 全局表格CSS（文本域清洗）
+        if (isset($input['global_table_css'])) {
+            $css = sanitize_textarea_field($input['global_table_css']);
+            // 进一步去除可能的注入符号（与前端输出的保护配合）
+            $css = preg_replace('/[{}<>]/', '', (string) $css);
+            $sanitized['global_table_css'] = $css;
+        } else {
+            $sanitized['global_table_css'] = '';
+        }
+
+        // 判断是否需要清理表格缓存
         $table_settings_changed = false;
-        $table_settings = array('default_table_style', 'show_product_images');
-        
-        foreach ($table_settings as $setting) {
-            if (isset($input[$setting]) && (!isset($old_options[$setting]) || $input[$setting] != $old_options[$setting])) {
+        foreach (array('default_table_style', 'show_product_images') as $key) {
+            $old = isset($old_options[$key]) ? $old_options[$key] : null;
+            if ($old !== $sanitized[$key]) {
                 $table_settings_changed = true;
                 break;
             }
         }
-        
-        // 如果表格设置发生变化，清除缓存
+
         if ($table_settings_changed) {
-            $this->clear_all_table_cache();
+            // 清除所有渲染缓存，确保样式立即生效
+            $cache = new B2BPress_Cache();
+            $cache->delete_by_prefix('b2bpress_rendered_table_');
+            $cache->delete_group('b2bpress_table');
+            if (method_exists($cache, 'bump_last_changed')) { $cache->bump_last_changed(); }
+            // 设置提示
+            add_settings_error(
+                'b2bpress_settings',
+                'cache_cleared',
+                __('表格设置已更改，所有表格缓存已清除。', 'b2bpress'),
+                'updated'
+            );
         }
-        
-        return $input;
+
+        return $sanitized;
     }
     
     /**

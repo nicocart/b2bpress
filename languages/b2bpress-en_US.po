@@ -1,0 +1,413 @@
+# B2BPress English translations
+msgid ""
+msgstr ""
+"Project-Id-Version: B2BPress 1.0.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-13 00:00+0000\n"
+"PO-Revision-Date: 2025-08-13 00:00+0000\n"
+"Last-Translator: B2BPress Team <support@expansing.cc>\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Cursor\n"
+
+#: general strings
+msgid "加载中..."
+msgstr "Loading..."
+
+msgid "未找到结果"
+msgstr "No results found"
+
+msgid "发生错误"
+msgstr "An error occurred"
+
+msgid "图片"
+msgstr "Image"
+
+msgid "产品名称"
+msgstr "Product Name"
+
+msgid "有库存"
+msgstr "In Stock"
+
+msgid "缺货"
+msgstr "Out of Stock"
+
+msgid "预订中"
+msgstr "On Backorder"
+
+msgid "属性"
+msgstr "Attribute"
+
+msgid "产品数据"
+msgstr "Product Data"
+
+msgid "价格"
+msgstr "Price"
+
+msgid "复制"
+msgstr "Copy"
+
+msgid "已复制"
+msgstr "Copied"
+
+msgid "编辑"
+msgstr "Edit"
+
+msgid "删除"
+msgstr "Delete"
+
+msgid "刷新缓存"
+msgstr "Refresh Cache"
+
+msgid "确认删除？"
+msgstr "Are you sure?"
+
+msgid "确定要删除此表格吗？此操作无法撤销。"
+msgstr "Are you sure to delete this table? This action cannot be undone."
+
+msgid "表格不存在"
+msgstr "Table does not exist"
+
+msgid "未找到产品"
+msgstr "No products found"
+
+msgid "需要登录才能查看表格数据"
+msgstr "Login required to view table data"
+
+msgid "需要登录才能查看该表格数据"
+msgstr "Login required to view this table"
+
+msgid "默认表格样式"
+msgstr "Default Table Style"
+
+msgid "显示产品图片"
+msgstr "Show Product Images"
+
+msgid "默认每页显示"
+msgstr "Default Per Page"
+
+msgid "需要登录"
+msgstr "Login Required"
+
+msgid "全局表格CSS"
+msgstr "Global Table CSS"
+
+msgid "继承主题"
+msgstr "Inherit Theme"
+
+msgid "ShadCN/UI 风格"
+msgstr "ShadCN/UI Style"
+
+msgid "干净（无边框）"
+msgstr "Clean (borderless)"
+
+msgid "描边表格"
+msgstr "Bordered"
+
+msgid "紧凑密集"
+msgstr "Compact"
+
+# Additional admin/menu/settings
+msgid "仪表盘"
+msgstr "Dashboard"
+
+msgid "表格管理"
+msgstr "Tables"
+
+msgid "设置"
+msgstr "Settings"
+
+msgid "关于"
+msgstr "About"
+
+msgid "WooCommerce 精简模式"
+msgstr "WooCommerce Lite Mode"
+
+msgid "禁用购物车"
+msgstr "Disable Cart"
+
+msgid "禁用WooCommerce购物车功能"
+msgstr "Disable WooCommerce cart functionality"
+
+msgid "禁用结账"
+msgstr "Disable Checkout"
+
+msgid "禁用WooCommerce结账功能"
+msgstr "Disable WooCommerce checkout functionality"
+
+msgid "禁用优惠券"
+msgstr "Disable Coupons"
+
+msgid "禁用WooCommerce优惠券功能"
+msgstr "Disable WooCommerce coupons"
+
+msgid "禁用库存"
+msgstr "Disable Inventory"
+
+msgid "禁用WooCommerce库存管理功能"
+msgstr "Disable WooCommerce stock management"
+
+msgid "禁用价格"
+msgstr "Hide Prices"
+
+msgid "隐藏产品价格"
+msgstr "Hide product prices"
+
+msgid "禁用营销"
+msgstr "Disable Marketing"
+
+msgid "禁用WooCommerce营销功能"
+msgstr "Disable WooCommerce marketing features"
+
+msgid "禁用前端CSS/JS"
+msgstr "Disable Frontend CSS/JS"
+
+msgid "禁用WooCommerce前端CSS和JavaScript"
+msgstr "Disable WooCommerce frontend CSS and JavaScript"
+
+msgid "表格设置"
+msgstr "Table Settings"
+
+msgid "选择默认表格样式"
+msgstr "Choose the default table style"
+
+msgid "显示产品图片"
+msgstr "Show Product Images"
+
+msgid "在前端表格中显示产品图片列"
+msgstr "Show product image column in the table"
+
+msgid "默认每页显示"
+msgstr "Default Per Page"
+
+msgid "设置默认每页显示的产品数量"
+msgstr "Set default products per page"
+
+msgid "需要登录"
+msgstr "Login Required"
+
+msgid "仅登录用户可以查看表格"
+msgstr "Only logged-in users can view tables"
+
+msgid "全局表格CSS"
+msgstr "Global Table CSS"
+
+msgid "为所有表格应用的全局CSS样式"
+msgstr "Global CSS applied to all tables"
+
+msgid "配置WooCommerce精简模式设置，禁用不需要的功能。"
+msgstr "Configure WooCommerce Lite Mode to disable unneeded features."
+
+msgid "配置产品表格的默认设置。"
+msgstr "Configure default settings for product tables."
+
+msgid "更多信息:"
+msgstr "More info:"
+
+msgid "文档"
+msgstr "Documentation"
+
+msgid "支持"
+msgstr "Support"
+
+msgid "每页表格数"
+msgstr "Tables per page"
+
+msgid "表格设置已更改，所有表格缓存已清除。"
+msgstr "Table settings changed. All table caches have been cleared."
+
+# Tables list
+msgid "添加表格"
+msgstr "Add Table"
+
+msgid "刷新所有缓存"
+msgstr "Refresh All Caches"
+
+msgid "标题"
+msgstr "Title"
+
+msgid "分类"
+msgstr "Category"
+
+msgid "样式"
+msgstr "Style"
+
+msgid "短代码"
+msgstr "Shortcode"
+
+msgid "日期"
+msgstr "Date"
+
+msgid "暂无表格。"
+msgstr "No tables yet."
+
+msgid "创建第一个表格"
+msgstr "Create the first table"
+
+# Tables new/edit
+msgid "新建表格"
+msgstr "Add New Table"
+
+msgid "返回列表"
+msgstr "Back to list"
+
+msgid "表格设置"
+msgstr "Table Settings"
+
+msgid "表格标题"
+msgstr "Table Title"
+
+msgid "产品分类"
+msgstr "Product Category"
+
+msgid "选择分类"
+msgstr "Select Category"
+
+msgid "选择分类后将自动加载该分类下的产品属性"
+msgstr "Attributes under the selected category will be loaded automatically"
+
+msgid "表格列"
+msgstr "Table Columns"
+
+msgid "选择要在表格中显示的列。拖动列可以重新排序。"
+msgstr "Select columns to display. Drag to reorder."
+
+msgid "可用列"
+msgstr "Available Columns"
+
+msgid "已选列"
+msgstr "Selected Columns"
+
+msgid "保存"
+msgstr "Save"
+
+msgid "创建表格"
+msgstr "Create Table"
+
+msgid "使用说明"
+msgstr "Instructions"
+
+msgid "创建表格后，您可以使用短代码在任何页面或文章中显示表格。"
+msgstr "After creating a table, use the shortcode to display it on any page or post."
+
+msgid "您还可以在Elementor页面构建器中使用B2BPress表格小部件。"
+msgstr "You can also use the B2BPress Table widget in Elementor."
+
+msgid "自定义属性"
+msgstr "Custom Attribute"
+
+msgid "全局属性"
+msgstr "Global Attribute"
+
+msgid "属性加载成功！请选择需要显示的属性。"
+msgstr "Attributes loaded. Please select the columns to display."
+
+msgid "未找到属性。请确保该分类下的产品有设置属性。"
+msgstr "No attributes found. Make sure products under this category have attributes."
+
+msgid "加载属性时发生错误"
+msgstr "Error loading attributes"
+
+msgid "请至少选择一个列"
+msgstr "Please select at least one column"
+
+msgid "创建表格时发生错误"
+msgstr "Error creating table"
+
+msgid "编辑表格"
+msgstr "Edit Table"
+
+msgid "如需重新加载分类下的所有属性，请点击\"加载属性\"按钮。"
+msgstr "Click \"Load Attributes\" to reload all attributes in the category."
+
+msgid "加载属性"
+msgstr "Load Attributes"
+
+msgid "短代码"
+msgstr "Shortcode"
+
+msgid "使用以下短代码在任何页面或文章中显示此表格："
+msgstr "Use the following shortcode to display this table:"
+
+msgid "预览"
+msgstr "Preview"
+
+msgid "预览表格"
+msgstr "Preview Table"
+
+msgid "请先选择产品分类"
+msgstr "Please select a product category first"
+
+msgid "SKU"
+msgstr "SKU"
+
+msgid "库存状态"
+msgstr "Stock Status"
+
+msgid "产品数据"
+msgstr "Product Data"
+
+msgid "前缀"
+msgstr "Prefix"
+
+msgid "后缀"
+msgstr "Suffix"
+
+msgid "表格已保存"
+msgstr "Table saved"
+
+msgid "保存表格时发生错误"
+msgstr "Error saving table"
+
+# Frontend
+msgid "搜索产品..."
+msgstr "Search"
+
+msgid "上一页"
+msgstr "Previous page"
+
+msgid "下一页"
+msgstr "Next page"
+
+msgid "显示"
+msgstr "Showing"
+
+msgid "到"
+msgstr "to"
+
+msgid "共"
+msgstr "of"
+
+msgid "项"
+msgstr "items"
+
+msgid "面议"
+msgstr "Negotiable"
+
+msgid "登录后可见"
+msgstr "Login to view"
+
+# Notices
+msgid "B2BPress 需要 PHP 8.0 或更高版本。请升级您的PHP版本。"
+msgstr "B2BPress requires PHP 8.0 or higher. Please upgrade your PHP."
+
+msgid "B2BPress 需要 WordPress 6.5 或更高版本。请升级您的WordPress。"
+msgstr "B2BPress requires WordPress 6.5 or higher. Please upgrade WordPress."
+
+msgid "B2BPress 需要 WooCommerce 插件。请联系网站管理员安装并激活WooCommerce。"
+msgstr "B2BPress requires the WooCommerce plugin. Please contact the site admin to install and activate WooCommerce."
+
+msgid "B2BPress 需要 WooCommerce 8.7 或更高版本。请升级您的WooCommerce。"
+msgstr "B2BPress requires WooCommerce 8.7 or higher. Please upgrade WooCommerce."
+
+msgid "插件依赖错误"
+msgstr "Plugin Dependency Error"
+
+msgid "激活失败：B2BPress 需要 WooCommerce 插件。请先安装并激活 WooCommerce。"
+msgstr "Activation failed: B2BPress requires WooCommerce. Please install and activate WooCommerce first."
+
+

@@ -24,6 +24,9 @@ class B2BPress_Language_Manager {
         
         // 加载文本域
         add_action('plugins_loaded', array($this, 'load_textdomain'));
+
+        // 在未提供 .mo 文件时提供运行时英文翻译映射（兜底）
+        add_action('plugins_loaded', array($this, 'init_runtime_en_translations'), 1);
     }
 
     /**
@@ -99,13 +102,20 @@ class B2BPress_Language_Manager {
      * @return string 语言代码
      */
     public function get_appropriate_language($is_frontend = false) {
-        // 如果是前端请求，返回站点语言
+        // 前端优先使用已登录用户的语言偏好，否则回退站点语言
         if ($is_frontend) {
+            if (is_user_logged_in()) {
+                $user_lang = $this->get_user_language();
+                if (!empty($user_lang)) {
+                    return $user_lang;
+                }
+            }
             return $this->get_site_language();
         }
         
-        // 如果是后端请求，返回用户语言
-        return $this->get_user_language();
+        // 后端优先使用用户语言，若无则回退站点语言
+        $user_lang = $this->get_user_language();
+        return !empty($user_lang) ? $user_lang : $this->get_site_language();
     }
 
     /**
@@ -127,6 +137,96 @@ class B2BPress_Language_Manager {
      */
     public function restore_original_language() {
         restore_previous_locale();
+    }
+
+    /**
+     * 运行时英文翻译（当源字符串为中文且缺少 en_US.mo 时的兜底方案）
+     */
+    public function init_runtime_en_translations() {
+        // 仅在当前目标语言为 en_US 时启用
+        $current = determine_locale();
+        if ($current !== 'en_US') {
+            return;
+        }
+
+        $map = $this->get_runtime_en_map();
+        if (empty($map)) { return; }
+
+        add_filter('gettext', function ($translated, $text, $domain) use ($map) {
+            if ($domain !== 'b2bpress') { return $translated; }
+            if (isset($map[$text])) { return $map[$text]; }
+            return $translated;
+        }, 10, 3);
+
+        add_filter('ngettext', function ($translated, $single, $plural, $number, $domain) use ($map) {
+            if ($domain !== 'b2bpress') { return $translated; }
+            if (isset($map[$single])) { return $map[$single]; }
+            return $translated;
+        }, 10, 5);
+    }
+
+    /**
+     * 常用中文=>英文映射（覆盖前后端常见文案）
+     * @return array
+     */
+    private function get_runtime_en_map() {
+        return array(
+            'B2BPress' => 'B2BPress',
+            '仪表盘' => 'Dashboard',
+            '表格管理' => 'Tables',
+            '设置' => 'Settings',
+            '关于' => 'About',
+            '默认表格样式' => 'Default Table Style',
+            '显示产品图片' => 'Show Product Images',
+            '默认每页显示' => 'Default Per Page',
+            '需要登录' => 'Login Required',
+            '全局表格CSS' => 'Global Table CSS',
+            '加载属性' => 'Load Attributes',
+            '添加' => 'Add',
+            '移除' => 'Remove',
+            '返回列表' => 'Back to list',
+            '保存' => 'Save',
+            '更新' => 'Update',
+            '创建表格' => 'Create Table',
+            '预览表格' => 'Preview Table',
+            '短代码' => 'Shortcode',
+            '标题' => 'Title',
+            '分类' => 'Category',
+            '样式' => 'Style',
+            '日期' => 'Date',
+            '编辑' => 'Edit',
+            '删除' => 'Delete',
+            '刷新缓存' => 'Refresh Cache',
+            '复制' => 'Copy',
+            '已复制' => 'Copied',
+            '搜索产品...' => 'Search products...',
+            '加载中...' => 'Loading...',
+            'Loading...' => 'Loading...',
+            '未找到结果' => 'No results found',
+            'No results found' => 'No results found',
+            '发生错误' => 'An error occurred',
+            '上一页' => 'Previous page',
+            '下一页' => 'Next page',
+            '图片' => 'Image',
+            '产品名称' => 'Product Name',
+            '有库存' => 'In Stock',
+            '缺货' => 'Out of Stock',
+            '预订中' => 'On Backorder',
+            'SKU' => 'SKU',
+            '库存状态' => 'Stock Status',
+            '属性' => 'Attribute',
+            '产品数据' => 'Product Data',
+            '价格' => 'Price',
+            '需要登录才能查看表格数据' => 'Login required to view table data',
+            '需要登录才能查看该表格数据' => 'Login required to view this table',
+            '表格不存在' => 'Table does not exist',
+            'Invalid product category' => 'Invalid product category',
+            'Invalid table ID' => 'Invalid table ID',
+            'No products found' => 'No products found',
+            'Edit Table' => 'Edit Table',
+            'Refresh Cache' => 'Refresh Cache',
+            '确定要删除此表格吗？此操作无法撤销。' => 'Are you sure to delete this table? This action cannot be undone.',
+        );
     }
 
     /**
@@ -188,7 +288,9 @@ class B2BPress_Language_Manager {
         if (!current_user_can('edit_user', $user_id)) {
             return false;
         }
-
-        $this->set_user_language($user_id, $_POST['b2bpress_language']);
+        if (isset($_POST['b2bpress_language'])) {
+            $language = sanitize_text_field(wp_unslash($_POST['b2bpress_language']));
+            $this->set_user_language($user_id, $language);
+        }
     }
 } 

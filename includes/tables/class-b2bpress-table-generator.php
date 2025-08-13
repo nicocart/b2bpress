@@ -299,8 +299,21 @@ class B2BPress_Table_Generator {
      * 渲染表格HTML
      */
     private function render_table_html() {
-        // 获取表格样式
-        $style = get_option('b2bpress_options', array('default_table_style' => 'inherit'))['default_table_style'];
+        // 获取表格样式：优先使用当前设置（用于分类短码临时表格），否则回退到全局设置
+        $style = isset($this->settings['style']) ? $this->settings['style'] : 'default';
+        if ($style === 'default') {
+            $global_options = get_option('b2bpress_options', array());
+            $style = isset($global_options['default_table_style']) ? $global_options['default_table_style'] : 'inherit';
+        }
+        // 若当前样式为 inherit 而全局样式非 inherit，则使用全局样式
+        if ($style === 'inherit') {
+            $global_options = isset($global_options) ? $global_options : get_option('b2bpress_options', array());
+            $global_style = isset($global_options['default_table_style']) ? $global_options['default_table_style'] : 'inherit';
+            if ($global_style !== 'inherit') {
+                $style = $global_style;
+            }
+        }
+        $style = $this->normalize_style($style);
         
         // 表格容器类
         $table_class = 'b2bpress-table b2bpress-table-' . esc_attr($style);
@@ -404,6 +417,19 @@ class B2BPress_Table_Generator {
         $category = isset($_POST['category']) ? absint($_POST['category']) : 0;
         $language = isset($_POST['language']) ? sanitize_text_field($_POST['language']) : '';
         
+        // 基于设置的访问控制
+        $options = get_option('b2bpress_options', array());
+        if (!empty($options['login_required']) && !is_user_logged_in()) {
+            wp_send_json_error(__('需要登录才能查看表格数据', 'b2bpress'));
+        }
+
+        if ($table_id > 0) {
+            $settings_for_acl = $this->get_table_settings($table_id);
+            if (!empty($settings_for_acl['login_required']) && !is_user_logged_in()) {
+                wp_send_json_error(__('需要登录才能查看该表格数据', 'b2bpress'));
+            }
+        }
+
         // 判断请求来源
         $is_frontend = true; // 默认假设是前端请求
         
@@ -411,7 +437,7 @@ class B2BPress_Table_Generator {
         if (!empty($language)) {
             switch_to_locale($language);
         } else {
-            // 否则应用适当的语言设置
+            // 否则应用适当的语言设置（前端优先用户语言）
             $this->apply_language($is_frontend);
         }
         
@@ -528,6 +554,19 @@ class B2BPress_Table_Generator {
             $products[] = $product_data;
         }
         
+        // 若禁用价格，则在AJAX层同样进行占位处理，防止价格泄露
+        $global_options_for_price = get_option('b2bpress_options', array());
+        if (isset($global_options_for_price['disable_prices']) && $global_options_for_price['disable_prices']) {
+            foreach ($products as &$p) {
+                foreach ($this->columns as $col) {
+                    if ($col['type'] === 'price') {
+                        $p[$col['key']] = is_user_logged_in() ? __('面议', 'b2bpress') : __('登录后可见', 'b2bpress');
+                    }
+                }
+            }
+            unset($p);
+        }
+        
         // 准备分页数据
         $pagination = array(
             'current_page' => $page,
@@ -624,16 +663,26 @@ class B2BPress_Table_Generator {
         // 允许的HTML类型：价格、缩略图、外部过滤后已HTML
         $html_allowed_types = array('price');
 
-        if ($column['key'] === 'thumbnail') {
-            return wp_kses_post((string)$value);
+        $sanitized = '';
+
+        if (isset($column['key']) && $column['key'] === 'thumbnail') {
+            $sanitized = wp_kses_post((string)$value);
+        } elseif (isset($column['type']) && in_array($column['type'], $html_allowed_types, true)) {
+            $sanitized = wp_kses_post((string)$value);
+        } else {
+            // 其他全部按纯文本处理
+            $sanitized = esc_html((string)$value);
         }
 
-        if (in_array($column['type'], $html_allowed_types, true)) {
-            return wp_kses_post((string)$value);
+        // 仅对属性列应用前后缀
+        if (isset($column['type']) && $column['type'] === 'attribute') {
+            // 保留空格：不用 sanitize_text_field，按文本输出并进行HTML转义，但不trim
+            $prefix = isset($column['prefix']) ? htmlspecialchars((string)$column['prefix'], ENT_QUOTES, 'UTF-8') : '';
+            $suffix = isset($column['suffix']) ? htmlspecialchars((string)$column['suffix'], ENT_QUOTES, 'UTF-8') : '';
+            $sanitized = $prefix . $sanitized . $suffix;
         }
 
-        // 其他全部按纯文本处理
-        return esc_html((string)$value);
+        return $sanitized;
     }
     
     /**
@@ -905,11 +954,24 @@ class B2BPress_Table_Generator {
                 continue;
             }
             
-            $sanitized[] = array(
+            $item = array(
                 'key' => sanitize_text_field($column['key']),
                 'label' => sanitize_text_field($column['label']),
                 'type' => sanitize_text_field($column['type']),
             );
+
+            // 仅对属性列接受前后缀
+            if (isset($column['type']) && $column['type'] === 'attribute') {
+                if (isset($column['prefix'])) {
+                    // 仅移除潜在控制字符，保留空格
+                    $item['prefix'] = wp_kses_post((string) wp_unslash($column['prefix']));
+                }
+                if (isset($column['suffix'])) {
+                    $item['suffix'] = wp_kses_post((string) wp_unslash($column['suffix']));
+                }
+            }
+
+            $sanitized[] = $item;
         }
         
         return $sanitized;
@@ -1383,6 +1445,15 @@ class B2BPress_Table_Generator {
             $global_options = get_option('b2bpress_options', array());
             $style = isset($global_options['default_table_style']) ? $global_options['default_table_style'] : 'inherit';
         }
+        // 若当前样式为 inherit 而全局样式非 inherit，则使用全局样式
+        if ($style === 'inherit') {
+            $global_options = isset($global_options) ? $global_options : get_option('b2bpress_options', array());
+            $global_style = isset($global_options['default_table_style']) ? $global_options['default_table_style'] : 'inherit';
+            if ($global_style !== 'inherit') {
+                $style = $global_style;
+            }
+        }
+        $style = $this->normalize_style($style);
         
         // 表格容器类
         $table_class = 'b2bpress-table b2bpress-table-' . esc_attr($style) . ' b2bpress-table-prerendered';
@@ -1542,5 +1613,33 @@ class B2BPress_Table_Generator {
      */
     private function get_product_attribute($product, $column) {
         return $this->get_column_value($product, $column);
+    }
+
+    /**
+     * 规范化样式名称，兼容旧样式并映射到新样式集合
+     *
+     * @param string $style 原始样式
+     * @return string 规范化后的样式
+     */
+    private function normalize_style($style) {
+        $style = (string) $style;
+        $map = array(
+            'default' => 'default',
+            'inherit' => 'inherit',
+            'shadcn' => 'shadcn',
+            'clean' => 'clean',
+            'bordered' => 'bordered',
+            'compact' => 'compact',
+            // 兼容旧样式映射
+            'classic' => 'bordered',
+            'modern' => 'shadcn',
+            'striped' => 'clean',
+            'card' => 'bordered',
+        );
+
+        if (!isset($map[$style])) {
+            return 'inherit';
+        }
+        return $map[$style];
     }
 } 

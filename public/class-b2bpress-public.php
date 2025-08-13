@@ -51,7 +51,9 @@ class B2BPress_Public {
         
         // 添加全局表格CSS
         if (isset($options['global_table_css']) && !empty($options['global_table_css'])) {
-            wp_add_inline_style('b2bpress-public', '.b2bpress-table { ' . $options['global_table_css'] . ' }');
+            $allowed_css = wp_kses($options['global_table_css'], array());
+            $allowed_css = preg_replace('/[{}<>]/', '', (string) $allowed_css);
+            wp_add_inline_style('b2bpress-public', '.b2bpress-table { ' . $allowed_css . ' }');
         }
         
         // 注册和加载脚本
@@ -63,16 +65,14 @@ class B2BPress_Public {
             true
         );
         
-        // 获取站点语言
+        // 获取语言：前端优先用户语言，其次站点语言
         $site_language = determine_locale();
-        
-        // 尝试从核心实例获取站点语言
         if (isset($GLOBALS['b2bpress_core'])) {
             $core = $GLOBALS['b2bpress_core'];
             if (method_exists($core, 'get_language_manager')) {
                 $language_manager = $core->get_language_manager();
                 if ($language_manager) {
-                    $site_language = $language_manager->get_site_language();
+                    $site_language = $language_manager->get_appropriate_language(true);
                 }
             }
         }
@@ -154,7 +154,7 @@ class B2BPress_Public {
             }
         }
         
-        // 输出表格前的HTML
+        // 输出表格前的HTML（携带语言）
         echo '<div class="b2bpress-table-container" data-id="' . esc_attr($args['id']) . '" data-language="' . esc_attr($site_language) . '">';
         
         // 添加搜索框

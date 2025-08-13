@@ -99,6 +99,13 @@ GPL v2 or later
 
 ## Changelog
 
+### 1.1.0 - 2025-08-13
+- Feature: New table style set (Inherit, ShadCN/UI, Clean, Bordered, Compact) with consistent CSS selectors
+- Fix: Global default style now applies reliably to frontend (priority + cache invalidation)
+- Feature: Attribute column prefix/suffix with whitespace preserved and safe escaping
+- Feature: Language handling prioritizes user preference on frontend; added runtime English fallback; added `languages/b2bpress-en_US.po`
+- UX: Elementor widget options updated to the new styles; removed duplicate style control to avoid conflicts
+
 ### 1.0.1 - 2025-08-11
 - Fix: Removed duplicate global activation/deactivation hooks to avoid running activation logic twice
 - Security: Escaped table cell output and allowlisted HTML to reduce XSS risk

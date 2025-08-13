@@ -23,7 +23,7 @@ if ($action === 'edit' && $table_id > 0) {
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline"><?php echo esc_html(get_admin_page_title()); ?></h1>
-        <a href="<?php echo admin_url('admin.php?page=b2bpress-tables&action=new'); ?>" class="page-title-action">
+        <a href="<?php echo esc_url(admin_url('admin.php?page=b2bpress-tables&action=new')); ?>" class="page-title-action">
             <?php _e('添加表格', 'b2bpress'); ?>
         </a>
         <button type="button" class="page-title-action b2bpress-refresh-cache" data-id="0">
@@ -78,23 +78,30 @@ if ($action === 'edit' && $table_id > 0) {
                         $category = get_term($category_id, 'product_cat');
                         $category_name = $category ? $category->name : '';
                         $style = isset($settings['style']) ? $settings['style'] : 'default';
+                        // 若未单独设置样式，展示全局默认样式
+                        if ($style === 'default') {
+                            $global_options = get_option('b2bpress_options', array());
+                            $style = isset($global_options['default_table_style']) ? $global_options['default_table_style'] : 'inherit';
+                        }
                         $style_labels = array(
-                            'default' => __('默认', 'b2bpress'),
-                            'striped' => __('条纹', 'b2bpress'),
-                            'card' => __('卡片', 'b2bpress'),
+                            'inherit' => __('继承主题', 'b2bpress'),
+                            'shadcn' => __('ShadCN/UI 风格', 'b2bpress'),
+                            'clean' => __('干净（无边框）', 'b2bpress'),
+                            'bordered' => __('描边表格', 'b2bpress'),
+                            'compact' => __('紧凑密集', 'b2bpress'),
                         );
                         $style_label = isset($style_labels[$style]) ? $style_labels[$style] : $style;
                     ?>
                     <tr>
                         <td class="title column-title column-primary">
                             <strong>
-                                <a href="<?php echo admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $table_id); ?>" class="row-title">
+                                <a href="<?php echo esc_url(admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $table_id)); ?>" class="row-title">
                                     <?php echo esc_html(get_the_title()); ?>
                                 </a>
                             </strong>
                             <div class="row-actions">
                                 <span class="edit">
-                                    <a href="<?php echo admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $table_id); ?>">
+                                    <a href="<?php echo esc_url(admin_url('admin.php?page=b2bpress-tables&action=edit&id=' . $table_id)); ?>">
                                         <?php _e('编辑', 'b2bpress'); ?>
                                     </a> |
                                 </span>
@@ -123,7 +130,7 @@ if ($action === 'edit' && $table_id > 0) {
                             </button>
                         </td>
                         <td class="date column-date">
-                            <?php echo get_the_date(); ?>
+                            <?php echo esc_html(get_the_date()); ?>
                         </td>
                     </tr>
                     <?php endwhile; ?>

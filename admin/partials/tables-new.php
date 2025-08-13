@@ -274,6 +274,15 @@ jQuery(document).ready(function($) {
         
         var $newItem = $item.clone();
         $newItem.find('.b2bpress-table-column-add').removeClass('b2bpress-table-column-add').addClass('b2bpress-table-column-remove').text('<?php _e('移除', 'b2bpress'); ?>');
+        if (type === 'attribute') {
+            if ($newItem.find('.b2bpress-attr-affixes').length === 0) {
+                var affixHtml = '<span class="b2bpress-attr-affixes">'
+                    + '<input type="text" class="small-text b2bpress-prefix" placeholder="<?php _e('前缀', 'b2bpress'); ?>" value=""> '
+                    + '<input type="text" class="small-text b2bpress-suffix" placeholder="<?php _e('后缀', 'b2bpress'); ?>" value="">'
+                    + '</span>';
+                $newItem.find('.b2bpress-table-column-type').after(affixHtml);
+            }
+        }
         
         $('#b2bpress-table-columns-selected-list').append($newItem);
         $item.remove();
@@ -290,6 +299,7 @@ jQuery(document).ready(function($) {
         
         var $newItem = $item.clone();
         $newItem.find('.b2bpress-table-column-remove').removeClass('b2bpress-table-column-remove').addClass('b2bpress-table-column-add').text('<?php _e('添加', 'b2bpress'); ?>');
+        $newItem.find('.b2bpress-attr-affixes').remove();
         
         $('#b2bpress-table-columns-available-list').append($newItem);
         $item.remove();
@@ -304,11 +314,18 @@ jQuery(document).ready(function($) {
         $('#b2bpress-table-columns-selected-list li').each(function() {
             var $item = $(this);
             
-            columns.push({
+            var col = {
                 key: $item.data('key'),
                 label: $item.data('label'),
                 type: $item.data('type')
-            });
+            };
+            if (col.type === 'attribute') {
+                var pref = $item.find('.b2bpress-prefix').val();
+                var suf = $item.find('.b2bpress-suffix').val();
+                col.prefix = (pref === undefined || pref === null) ? '' : String(pref);
+                col.suffix = (suf === undefined || suf === null) ? '' : String(suf);
+            }
+            columns.push(col);
         });
         
         $('#b2bpress-table-columns-data').html('');
@@ -317,7 +334,9 @@ jQuery(document).ready(function($) {
             $('#b2bpress-table-columns-data').append(
                 '<input type="hidden" name="columns[' + index + '][key]" value="' + column.key + '">' +
                 '<input type="hidden" name="columns[' + index + '][label]" value="' + column.label + '">' +
-                '<input type="hidden" name="columns[' + index + '][type]" value="' + column.type + '">'
+                '<input type="hidden" name="columns[' + index + '][type]" value="' + column.type + '">' +
+                (column.type === 'attribute' ? ('<input type="hidden" name="columns[' + index + '][prefix]" value="' + (column.prefix || '') + '">') : '') +
+                (column.type === 'attribute' ? ('<input type="hidden" name="columns[' + index + '][suffix]" value="' + (column.suffix || '') + '">') : '')
             );
         });
     }

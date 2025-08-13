@@ -120,10 +120,11 @@ class B2BPress_Table_Widget extends \Elementor\Widget_Base {
                 'label' => __('表格样式', 'b2bpress'),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => [
-                    'inherit' => __('默认（继承主题）', 'b2bpress'),
-                    'classic' => __('经典', 'b2bpress'),
-                    'modern' => __('现代', 'b2bpress'),
-                    'striped' => __('条纹', 'b2bpress'),
+                    'inherit' => __('继承主题', 'b2bpress'),
+                    'shadcn' => __('ShadCN/UI 风格', 'b2bpress'),
+                    'clean' => __('干净（无边框）', 'b2bpress'),
+                    'bordered' => __('描边表格', 'b2bpress'),
+                    'compact' => __('紧凑密集', 'b2bpress'),
                 ],
                 'default' => 'inherit',
             ]
@@ -142,21 +143,7 @@ class B2BPress_Table_Widget extends \Elementor\Widget_Base {
             ]
         );
 
-        // 表格风格控件
-        $this->add_control(
-            'style',
-            [
-                'label' => __('风格', 'b2bpress'),
-                'type' => \Elementor\Controls_Manager::SELECT,
-                'options' => [
-                    'inherit' => __('继承', 'b2bpress'),
-                    'classic' => __('经典', 'b2bpress'),
-                    'modern' => __('现代', 'b2bpress'),
-                ],
-                'default' => 'inherit',
-                'description' => __('选择表格的展示风格', 'b2bpress'),
-            ]
-        );
+        // 删除重复“风格”控件，避免覆盖样式
 
         // 是否显示图片
         $this->add_control(

@@ -39,7 +39,7 @@ $custom_styles = isset($settings['custom_styles']) ? $settings['custom_styles'] 
 
 <div class="wrap">
     <h1 class="wp-heading-inline"><?php _e('编辑表格', 'b2bpress'); ?></h1>
-    <a href="<?php echo admin_url('admin.php?page=b2bpress-tables'); ?>" class="page-title-action">
+    <a href="<?php echo esc_url(admin_url('admin.php?page=b2bpress-tables')); ?>" class="page-title-action">
         <?php _e('返回列表', 'b2bpress'); ?>
     </a>
     <hr class="wp-header-end">
@@ -150,7 +150,9 @@ $custom_styles = isset($settings['custom_styles']) ? $settings['custom_styles'] 
                                 <ul id="b2bpress-table-columns-selected-list" class="b2bpress-table-columns-list">
                                     <?php
                                     foreach ($columns as $column) {
-                                        echo '<li data-key="' . esc_attr($column['key']) . '" data-label="' . esc_attr($column['label']) . '" data-type="' . esc_attr($column['type']) . '">';
+                                        $prefix = isset($column['prefix']) ? $column['prefix'] : '';
+                                        $suffix = isset($column['suffix']) ? $column['suffix'] : '';
+                                        echo '<li data-key="' . esc_attr($column['key']) . '" data-label="' . esc_attr($column['label']) . '" data-type="' . esc_attr($column['type']) . '" data-prefix="' . esc_attr($prefix) . '" data-suffix="' . esc_attr($suffix) . '">';
                                         echo '<span class="b2bpress-table-column-label">' . esc_html($column['label']) . '</span>';
                                         echo '<span class="b2bpress-table-column-type">';
                                         
@@ -161,6 +163,12 @@ $custom_styles = isset($settings['custom_styles']) ? $settings['custom_styles'] 
                                         }
                                         
                                         echo '</span>';
+                                        if ($column['type'] === 'attribute') {
+                                            echo '<span class="b2bpress-attr-affixes">';
+                                            echo '<input type="text" class="small-text b2bpress-prefix" placeholder="' . esc_attr__('前缀', 'b2bpress') . '" value="' . esc_attr($prefix) . '" />';
+                                            echo '<input type="text" class="small-text b2bpress-suffix" placeholder="' . esc_attr__('后缀', 'b2bpress') . '" value="' . esc_attr($suffix) . '" />';
+                                            echo '</span>';
+                                        }
                                         echo '<button type="button" class="button button-small b2bpress-table-column-remove">' . __('移除', 'b2bpress') . '</button>';
                                         echo '</li>';
                                     }
@@ -210,7 +218,7 @@ $custom_styles = isset($settings['custom_styles']) ? $settings['custom_styles'] 
                         <h2><?php _e('预览', 'b2bpress'); ?></h2>
                     </div>
                     <div class="inside">
-                        <a href="<?php echo add_query_arg(array('b2bpress_table_preview' => $table_id), home_url()); ?>" target="_blank" class="button">
+                        <a href="<?php echo esc_url(add_query_arg(array('b2bpress_table_preview' => $table_id), home_url())); ?>" target="_blank" class="button">
                             <?php _e('预览表格', 'b2bpress'); ?>
                         </a>
                     </div>
@@ -420,6 +428,16 @@ jQuery(document).ready(function($) {
         
         var $newItem = $item.clone();
         $newItem.find('.b2bpress-table-column-add').removeClass('b2bpress-table-column-add').addClass('b2bpress-table-column-remove').text('<?php _e('移除', 'b2bpress'); ?>');
+        // 若为属性列，添加前后缀输入
+        if (type === 'attribute') {
+            if ($newItem.find('.b2bpress-attr-affixes').length === 0) {
+                var affixHtml = '<span class="b2bpress-attr-affixes">'
+                    + '<input type="text" class="small-text b2bpress-prefix" placeholder="<?php _e('前缀', 'b2bpress'); ?>" value=""> '
+                    + '<input type="text" class="small-text b2bpress-suffix" placeholder="<?php _e('后缀', 'b2bpress'); ?>" value="">'
+                    + '</span>';
+                $newItem.find('.b2bpress-table-column-type').after(affixHtml);
+            }
+        }
         
         $('#b2bpress-table-columns-selected-list').append($newItem);
         $item.remove();
@@ -436,6 +454,8 @@ jQuery(document).ready(function($) {
         
         var $newItem = $item.clone();
         $newItem.find('.b2bpress-table-column-remove').removeClass('b2bpress-table-column-remove').addClass('b2bpress-table-column-add').text('<?php _e('添加', 'b2bpress'); ?>');
+        // 将可用列中的前后缀输入移除
+        $newItem.find('.b2bpress-attr-affixes').remove();
         
         $('#b2bpress-table-columns-available-list').append($newItem);
         $item.remove();
@@ -450,11 +470,19 @@ jQuery(document).ready(function($) {
         $('#b2bpress-table-columns-selected-list li').each(function() {
             var $item = $(this);
             
-            columns.push({
+            var col = {
                 key: $item.data('key'),
                 label: $item.data('label'),
                 type: $item.data('type')
-            });
+            };
+            if (col.type === 'attribute') {
+                // 保留首尾空格
+                var pref = $item.find('.b2bpress-prefix').val();
+                var suf = $item.find('.b2bpress-suffix').val();
+                col.prefix = (pref === undefined || pref === null) ? '' : String(pref);
+                col.suffix = (suf === undefined || suf === null) ? '' : String(suf);
+            }
+            columns.push(col);
         });
         
         $('#b2bpress-table-columns-data').html('');
@@ -463,13 +491,29 @@ jQuery(document).ready(function($) {
             $('#b2bpress-table-columns-data').append(
                 '<input type="hidden" name="columns[' + index + '][key]" value="' + column.key + '">' +
                 '<input type="hidden" name="columns[' + index + '][label]" value="' + column.label + '">' +
-                '<input type="hidden" name="columns[' + index + '][type]" value="' + column.type + '">'
+                '<input type="hidden" name="columns[' + index + '][type]" value="' + column.type + '">' +
+                (column.type === 'attribute' ? ('<input type="hidden" name="columns[' + index + '][prefix]" value="' + (column.prefix || '') + '">') : '') +
+                (column.type === 'attribute' ? ('<input type="hidden" name="columns[' + index + '][suffix]" value="' + (column.suffix || '') + '">') : '')
             );
         });
     }
     
     // 初始化列数据
     updateColumnsData();
+    // 为已存在的属性列追加前后缀输入（如果缺失）
+    $('#b2bpress-table-columns-selected-list li').each(function() {
+        var $item = $(this);
+        var type = $item.data('type');
+        if (type === 'attribute' && $item.find('.b2bpress-attr-affixes').length === 0) {
+            var pref = ($item.data('prefix') || '').toString();
+            var suf = ($item.data('suffix') || '').toString();
+            var affixHtml = '<span class="b2bpress-attr-affixes">'
+                + '<input type="text" class="small-text b2bpress-prefix" placeholder="<?php _e('前缀', 'b2bpress'); ?>" value="' + pref.replace(/"/g, '&quot;') + '"> '
+                + '<input type="text" class="small-text b2bpress-suffix" placeholder="<?php _e('后缀', 'b2bpress'); ?>" value="' + suf.replace(/"/g, '&quot;') + '">'
+                + '</span>';
+            $item.find('.b2bpress-table-column-type').after(affixHtml);
+        }
+    });
     
     // 表单提交
     $('#b2bpress-table-edit-form').on('submit', function(e) {
@@ -522,11 +566,18 @@ jQuery(document).ready(function($) {
         $('#b2bpress-table-columns-selected-list li').each(function() {
             var $item = $(this);
             
-            columns.push({
+            var col = {
                 key: $item.data('key'),
                 label: $item.data('label'),
                 type: $item.data('type')
-            });
+            };
+            if (col.type === 'attribute') {
+                var pref = $item.find('.b2bpress-prefix').val();
+                var suf = $item.find('.b2bpress-suffix').val();
+                col.prefix = (pref === undefined || pref === null) ? '' : String(pref);
+                col.suffix = (suf === undefined || suf === null) ? '' : String(suf);
+            }
+            columns.push(col);
         });
         
         return columns;

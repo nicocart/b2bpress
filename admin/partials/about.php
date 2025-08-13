@@ -78,31 +78,25 @@ if (!defined('ABSPATH')) {
             <h3><?php _e('版本历史', 'b2bpress'); ?></h3>
             <div class="b2bpress-changelog">
                 <div class="b2bpress-changelog-item">
-                    <h4>1.0.7 <span class="b2bpress-changelog-date">2023-08-15</span></h4>
+                    <h4>1.0.1 <span class="b2bpress-changelog-date">2025-08-11</span></h4>
                     <ul>
-                        <li><?php _e('优化表格响应式设计', 'b2bpress'); ?></li>
-                        <li><?php _e('添加关于页面', 'b2bpress'); ?></li>
-                        <li><?php _e('移除设置向导', 'b2bpress'); ?></li>
-                        <li><?php _e('改进表格创建流程，选择分类后自动加载属性', 'b2bpress'); ?></li>
-                        <li><?php _e('修复多个UI和性能问题', 'b2bpress'); ?></li>
+                        <li><?php _e('修复：移除重复的全局启用/停用钩子，避免激活逻辑执行两次', 'b2bpress'); ?></li>
+                        <li><?php _e('安全：转义表格单元格输出并白名单HTML，降低XSS风险', 'b2bpress'); ?></li>
+                        <li><?php _e('性能/稳定性：使用精确的前缀/分组缓存失效替代整站缓存清空', 'b2bpress'); ?></li>
+                        <li><?php _e('用户体验：为表头与分页添加可访问性属性；预渲染输出更安全', 'b2bpress'); ?></li>
                     </ul>
                 </div>
-                
                 <div class="b2bpress-changelog-item">
-                    <h4>1.0.6 <span class="b2bpress-changelog-date">2023-07-20</span></h4>
+                    <h4>1.0.0 <span class="b2bpress-changelog-date">2025-08-11</span></h4>
                     <ul>
-                        <li><?php _e('添加新的表格样式：现代和极简', 'b2bpress'); ?></li>
-                        <li><?php _e('改进表格搜索功能', 'b2bpress'); ?></li>
-                        <li><?php _e('修复与某些主题的兼容性问题', 'b2bpress'); ?></li>
-                    </ul>
-                </div>
-                
-                <div class="b2bpress-changelog-item">
-                    <h4>1.0.5 <span class="b2bpress-changelog-date">2023-06-10</span></h4>
-                    <ul>
-                        <li><?php _e('添加Elementor集成', 'b2bpress'); ?></li>
-                        <li><?php _e('改进缓存机制', 'b2bpress'); ?></li>
-                        <li><?php _e('修复多个bug', 'b2bpress'); ?></li>
+                        <li><?php _e('初始发布', 'b2bpress'); ?></li>
+                        <li><?php _e('WooCommerce 精简模式', 'b2bpress'); ?></li>
+                        <li><?php _e('产品表格生成器', 'b2bpress'); ?></li>
+                        <li><?php _e('Elementor 小部件', 'b2bpress'); ?></li>
+                        <li><?php _e('缓存与同步机制', 'b2bpress'); ?></li>
+                        <li><?php _e('权限与可见性控制', 'b2bpress'); ?></li>
+                        <li><?php _e('开发者钩子与 REST API', 'b2bpress'); ?></li>
+                        <li><?php _e('HPOS 兼容声明', 'b2bpress'); ?></li>
                     </ul>
                 </div>
             </div>
@@ -113,8 +107,8 @@ if (!defined('ABSPATH')) {
             <p><?php _e('B2BPress由一支专注于B2B电子商务解决方案的团队开发和维护。我们致力于为B2B企业提供简单、高效、专业的电子商务工具。', 'b2bpress'); ?></p>
             <p><?php _e('如果您有任何问题或建议，请随时联系我们：', 'b2bpress'); ?></p>
             <ul>
-                <li><?php _e('官方网站：', 'b2bpress'); ?> <a href="https://b2bpress.expensing.com/" target="_blank">https://b2bpress.expensing.com/</a></li>
-                <li><?php _e('支持邮箱：', 'b2bpress'); ?> <a href="mailto:support@b2bpress.expensing.com">support@b2bpress.expensing.com</a></li>
+                <li><?php _e('官方网站：', 'b2bpress'); ?> <a href="https://expansing.cc/b2bpress" target="_blank">https://expansing.cc/b2bpress</a></li>
+                <li><?php _e('支持邮箱：', 'b2bpress'); ?> <a href="mailto:support@expansing.cc">support@expansing.cc</a></li>
             </ul>
         </div>
     </div>
