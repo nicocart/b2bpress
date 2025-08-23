@@ -165,8 +165,12 @@ class B2BPress_Table_Generator {
             return;
         }
         
-        // 如果无法获取语言管理器，使用默认语言
-        switch_to_locale('en_US');
+        // 如果无法获取语言管理器，回退到 WP 判定
+        if (function_exists('determine_locale')) {
+            switch_to_locale(determine_locale());
+        } else {
+            switch_to_locale(get_locale());
+        }
     }
     
     /**
@@ -190,8 +194,8 @@ class B2BPress_Table_Generator {
      * @return string 表格HTML
      */
     public function render_table($args) {
-        // 应用站点语言（前端表格）
-        $this->apply_language(true);
+        // 应用站点语言（前端表格）：依赖 WP 判定结果
+        if (function_exists('determine_locale')) { switch_to_locale(determine_locale()); } else { $this->apply_language(true); }
         
         // 获取表格ID
         $this->table_id = absint($args['id']);
@@ -200,7 +204,7 @@ class B2BPress_Table_Generator {
         if ($this->table_id === 0 && !empty($args['category'])) {
             $result = $this->render_category_table($args);
             // 恢复原始语言
-            $this->restore_original_language();
+            restore_previous_locale();
             return $result;
         }
         
@@ -208,7 +212,7 @@ class B2BPress_Table_Generator {
         if ($this->table_id === 0) {
             $result = '<p class="b2bpress-error">' . __('Invalid table ID', 'b2bpress') . '</p>';
             // 恢复原始语言
-            $this->restore_original_language();
+            restore_previous_locale();
             return $result;
         }
         
@@ -219,7 +223,7 @@ class B2BPress_Table_Generator {
         if (empty($this->settings)) {
             $result = '<p class="b2bpress-error">' . __('Table does not exist', 'b2bpress') . '</p>';
             // 恢复原始语言
-            $this->restore_original_language();
+            restore_previous_locale();
             return $result;
         }
         
@@ -229,8 +233,9 @@ class B2BPress_Table_Generator {
         // 获取表格列
         $this->columns = $this->get_table_columns($this->table_id);
         
-        // 尝试从缓存获取预渲染的表格内容
-        $cache_key = 'b2bpress_rendered_table_' . $this->table_id . '_' . md5(serialize($this->settings));
+        // 尝试从缓存获取预渲染的表格内容（按语言隔离缓存）
+        $current_locale = function_exists('get_locale') ? get_locale() : 'en_US';
+        $cache_key = 'b2bpress_rendered_table_' . $this->table_id . '_' . md5(serialize($this->settings)) . '_' . $current_locale;
         $cached_content = $this->cache->get($cache_key);
         
         if ($cached_content !== false) {
@@ -246,7 +251,7 @@ class B2BPress_Table_Generator {
         $this->cache->set($cache_key, $content, 86400);
         
         // 恢复原始语言
-        $this->restore_original_language();
+        restore_previous_locale();
         
         return $content;
     }
@@ -436,8 +441,9 @@ class B2BPress_Table_Generator {
         // 如果前端传递了语言参数，临时切换语言
         if (!empty($language)) {
             switch_to_locale($language);
+        } else if (function_exists('determine_locale')) {
+            switch_to_locale(determine_locale());
         } else {
-            // 否则应用适当的语言设置（前端优先用户语言）
             $this->apply_language($is_frontend);
         }
         
@@ -445,7 +451,7 @@ class B2BPress_Table_Generator {
         $data = $this->get_table_data($table_id, $page, $per_page, $search, $category);
         
         // 恢复原始语言
-        $this->restore_original_language();
+        restore_previous_locale();
         
         // 返回JSON响应
         wp_send_json_success($data);
@@ -462,8 +468,9 @@ class B2BPress_Table_Generator {
      * @return array 表格数据
      */
     private function get_table_data($table_id, $page, $per_page, $search, $category) {
-        // 生成缓存键
-        $cache_key = 'b2bpress_table_' . $table_id . '_' . $category . '_' . $page . '_' . $per_page . '_' . md5($search);
+        // 生成缓存键（按语言隔离缓存）
+        $current_locale = function_exists('get_locale') ? get_locale() : 'en_US';
+        $cache_key = 'b2bpress_table_' . $table_id . '_' . $category . '_' . $page . '_' . $per_page . '_' . md5($search) . '_' . $current_locale;
         
         // 尝试从缓存获取数据
         $data = $this->cache->get($cache_key);
@@ -807,43 +814,50 @@ class B2BPress_Table_Generator {
      * @return array 分类属性
      */
     public function get_category_attributes($category_id) {
-        // 获取分类下的所有产品
-        $args = array(
-            'post_type' => 'product',
-            'post_status' => 'publish',
-            'posts_per_page' => -1,
-            'tax_query' => array(
-                array(
-                    'taxonomy' => 'product_cat',
-                    'field' => 'term_id',
-                    'terms' => $category_id,
-                ),
-            ),
-        );
-        
-        $query = new WP_Query($args);
-        
-        // 收集所有属性
+        // 分页查询以避免大目录 -1 全量查询
         $attributes = array();
-        foreach ($query->posts as $post) {
-            $product = wc_get_product($post->ID);
-            if (!$product) {
-                continue;
-            }
-            
-            $product_attributes = $product->get_attributes();
-            foreach ($product_attributes as $attribute_key => $attribute) {
-                if ($attribute->is_taxonomy()) {
-                    $taxonomy = $attribute->get_taxonomy_object();
-                    $attributes[$attribute_key] = array(
-                        'key' => $attribute_key,
-                        'label' => $taxonomy->attribute_label,
-                        'type' => 'attribute',
-                    );
+        $paged = 1;
+        $per_page = 200;
+        do {
+            $args = array(
+                'post_type'      => 'product',
+                'post_status'    => 'publish',
+                'posts_per_page' => $per_page,
+                'paged'          => $paged,
+                'fields'         => 'ids',
+                'tax_query'      => array(
+                    array(
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'term_id',
+                        'terms'    => $category_id,
+                    ),
+                ),
+            );
+            $query = new WP_Query($args);
+            if (!$query->have_posts()) { break; }
+
+            foreach ($query->posts as $product_id) {
+                $product = wc_get_product($product_id);
+                if (!$product) { continue; }
+                $product_attributes = $product->get_attributes();
+                foreach ($product_attributes as $attribute_key => $attribute) {
+                    if ($attribute->is_taxonomy()) {
+                        $taxonomy = $attribute->get_taxonomy_object();
+                        if ($taxonomy) {
+                            $attributes[$attribute_key] = array(
+                                'key'   => $attribute_key,
+                                'label' => $taxonomy->attribute_label,
+                                'type'  => 'attribute',
+                            );
+                        }
+                    }
                 }
             }
-        }
-        
+
+            $paged++;
+            wp_reset_postdata();
+        } while ($query->max_num_pages >= $paged - 1);
+
         // 添加默认列
         $default_columns = array(
             array(
@@ -1519,7 +1533,8 @@ class B2BPress_Table_Generator {
      */
     private function get_all_table_data($table_id) {
         // 生成缓存键
-        $cache_key = 'b2bpress_table_all_data_' . $table_id;
+        $current_locale = function_exists('get_locale') ? get_locale() : 'en_US';
+        $cache_key = 'b2bpress_table_all_data_' . $table_id . '_' . $current_locale;
         
         // 尝试从缓存获取数据
         $data = $this->cache->get($cache_key);

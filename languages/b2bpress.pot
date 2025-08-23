@@ -1,0 +1,24 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: B2BPress 1.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/b2bpress\n"
+"POT-Creation-Date: 2025-08-14 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Cursor\n"
+
+# Example entries; full extraction should be generated via wp i18n make-pot
+msgid "B2BPress"
+msgstr ""
+
+msgid "设置"
+msgstr ""
+
+msgid "表格"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+

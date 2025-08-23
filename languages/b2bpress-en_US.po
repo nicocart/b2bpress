@@ -72,6 +72,82 @@ msgstr "Are you sure to delete this table? This action cannot be undone."
 msgid "表格不存在"
 msgstr "Table does not exist"
 
+# Dashboard
+msgid "欢迎使用 B2BPress"
+msgstr "Welcome to B2BPress"
+
+msgid "快速入门"
+msgstr "Getting Started"
+
+msgid "配置插件设置"
+msgstr "Configure plugin settings"
+
+msgid "创建产品表格"
+msgstr "Create product tables"
+
+msgid "使用短代码"
+msgstr "Use shortcodes"
+
+msgid "使用以下短代码在任何页面或文章中显示产品表格："
+msgstr "Use the following shortcode to display a product table on any page or post:"
+
+msgid "或者使用分类显示临时表格："
+msgstr "Or display a temporary table by category:"
+
+msgid "统计信息"
+msgstr "Statistics"
+
+msgid "表格"
+msgstr "Tables"
+
+msgid "产品"
+msgstr "Products"
+
+msgid "分类"
+msgstr "Categories"
+
+msgid "最近的表格"
+msgstr "Recent Tables"
+
+# Admin help
+msgid "概述"
+msgstr "Overview"
+
+# Admin localized JS strings
+msgid "保存中..."
+msgstr "Saving..."
+
+msgid "已保存"
+msgstr "Saved"
+
+msgid "删除表格时发生错误"
+msgstr "Error deleting table"
+
+msgid "刷新中..."
+msgstr "Refreshing..."
+
+msgid "已刷新"
+msgstr "Refreshed"
+
+msgid "刷新缓存时发生错误"
+msgstr "Error refreshing cache"
+
+# API/Permissions
+msgid "您没有查看表格的权限"
+msgstr "You do not have permission to view tables"
+
+msgid "您没有创建表格的权限"
+msgstr "You do not have permission to create tables"
+
+msgid "您没有更新表格的权限"
+msgstr "You do not have permission to update tables"
+
+msgid "您没有删除表格的权限"
+msgstr "You do not have permission to delete tables"
+
+msgid "无法删除表格"
+msgstr "Unable to delete table"
+
 msgid "未找到产品"
 msgstr "No products found"
 
@@ -365,7 +441,133 @@ msgstr "Error saving table"
 
 # Frontend
 msgid "搜索产品..."
-msgstr "Search"
+msgstr "Search products..."
+
+# Admin/About & Settings additions
+msgid "B2BPress - 专业的B2B电子商务解决方案"
+msgstr "B2BPress - Professional B2B eCommerce Solution"
+
+msgid "版本 %s"
+msgstr "Version %s"
+
+msgid "插件介绍"
+msgstr "Introduction"
+
+msgid "B2BPress是一个基于WooCommerce的B2B电子商务解决方案，专为批发和B2B业务设计。它精简了所有与B2B无关的功能，提供了更加专注于B2B场景的用户体验。"
+msgstr "B2BPress is a WooCommerce-based B2B eCommerce solution designed for wholesale and B2B businesses. It streamlines features unrelated to B2B for a more focused experience."
+
+msgid "通过B2BPress，您可以轻松创建产品表格，展示产品分类和属性，使您的客户能够更快地找到所需的产品。"
+msgstr "With B2BPress, you can easily create product tables, showcase categories and attributes, and help customers find products faster."
+
+msgid "核心功能"
+msgstr "Key Features"
+
+msgid "产品表格"
+msgstr "Product Tables"
+
+msgid "创建自定义产品表格，展示产品分类和属性，支持多种表格样式。"
+msgstr "Create custom product tables with categories and attributes, supporting multiple table styles."
+
+msgid "WooCommerce精简模式"
+msgstr "WooCommerce Lite Mode"
+
+msgid "多种表格样式"
+msgstr "Multiple Table Styles"
+
+msgid "提供多种表格样式，包括默认、条纹、卡片、现代和极简风格，满足不同的设计需求。"
+msgstr "Provides multiple styles including default, striped, card, modern and minimal to fit different design needs."
+
+msgid "响应式设计"
+msgstr "Responsive Design"
+
+msgid "所有表格都采用响应式设计，在各种设备上都能完美显示。"
+msgstr "All tables are responsive and display perfectly on various devices."
+
+msgid "Elementor集成"
+msgstr "Elementor Integration"
+
+msgid "提供Elementor小部件，轻松在Elementor页面中添加产品表格。"
+msgstr "Provides an Elementor widget to easily add product tables in Elementor pages."
+
+msgid "性能优化"
+msgstr "Performance Optimization"
+
+msgid "使用缓存机制优化表格加载速度，提供更好的用户体验。"
+msgstr "Optimizes table loading speed with caching for a better user experience."
+
+msgid "版本历史"
+msgstr "Changelog"
+
+msgid "团队信息"
+msgstr "Team"
+
+msgid "如果您有任何问题或建议，请随时联系我们："
+msgstr "If you have any questions or suggestions, feel free to contact us:"
+
+msgid "官方网站："
+msgstr "Official Website:"
+
+msgid "支持邮箱："
+msgstr "Support Email:"
+
+msgid "WooCommerce 精简模式说明"
+msgstr "WooCommerce Lite Mode Guide"
+
+msgid "WooCommerce 精简模式可以禁用不需要的 WooCommerce 功能，使其更适合 B2B 业务。"
+msgstr "WooCommerce Lite Mode can disable unneeded WooCommerce features to better fit B2B use."
+
+msgid "禁用 WooCommerce 购物车功能，隐藏\"添加到购物车\"按钮。"
+msgstr "Disable WooCommerce cart and hide the \"Add to cart\" button."
+
+msgid "禁用 WooCommerce 结账功能，用户将无法完成购买流程。"
+msgstr "Disable WooCommerce checkout so users cannot complete purchases."
+
+msgid "禁用 WooCommerce 优惠券功能，隐藏优惠券输入框。"
+msgstr "Disable WooCommerce coupons and hide the coupon field."
+
+msgid "禁用 WooCommerce 库存管理功能，所有产品将显示为\"有库存\"。"
+msgstr "Disable WooCommerce stock management; all products will appear as \"In stock\"."
+
+msgid "隐藏产品价格，适用于需要询价的 B2B 业务。"
+msgstr "Hide product prices, suitable for quotation-based B2B."
+
+msgid "禁用 WooCommerce 营销功能，隐藏相关菜单和功能。"
+msgstr "Disable WooCommerce marketing features and hide related menus."
+
+msgid "禁用 WooCommerce 前端 CSS 和 JavaScript，减少页面加载时间。"
+msgstr "Disable WooCommerce frontend CSS and JavaScript to reduce page load time."
+
+msgid "表格设置说明"
+msgstr "Table Settings Guide"
+
+msgid "表格设置用于配置产品表格的默认行为。"
+msgstr "Table settings configure the default behavior of product tables."
+
+msgid "设置表格的默认样式，可以在短代码中覆盖。"
+msgstr "Set the default table style, which can be overridden in the shortcode."
+
+msgid "控制是否在前端表格中显示产品图片列。"
+msgstr "Control whether to show the product image column in the frontend table."
+
+msgid "设置表格默认每页显示的产品数量，可以在短代码中覆盖。"
+msgstr "Set the default number of products per page; can be overridden in the shortcode."
+
+msgid "启用后，只有登录用户才能查看表格，未登录用户将被重定向到登录页面。"
+msgstr "When enabled, only logged-in users can view tables; others are redirected to login."
+
+msgid "注意：更改表格样式或图片显示设置后，所有表格缓存将被自动清除，以确保新设置立即生效。"
+msgstr "Note: Changing table style or image settings will automatically clear all table caches so the new settings take effect immediately."
+
+# Admin UI common actions
+msgid "添加"
+msgstr "Add"
+
+msgid "移除"
+msgstr "Remove"
+
+msgid "更新"
+msgstr "Update"
+
 
 msgid "上一页"
 msgstr "Previous page"

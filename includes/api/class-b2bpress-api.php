@@ -556,9 +556,14 @@ class B2BPress_API {
         $table_generator = new B2BPress_Table_Generator();
         $settings = $table_generator->get_table_settings($table_id);
 
-        // 临时应用语言（如果提供）
+        // 临时应用语言（如果提供）；否则遵循 WP 的 determine_locale
+        $did_switch_locale = false;
         if (!empty($language)) {
             switch_to_locale($language);
+            $did_switch_locale = true;
+        } else if (function_exists('determine_locale')) {
+            switch_to_locale(determine_locale());
+            $did_switch_locale = true;
         }
 
         // 优先使用传入的 category（允许临时分类视图），否则使用表格设置
@@ -574,7 +579,7 @@ class B2BPress_API {
         if (!empty($if_none_match) && trim($if_none_match, '"') === $etag) {
             $response = new WP_REST_Response(null, 304);
             $this->apply_cache_headers($response, $etag, $last_modified_gmt);
-            if (!empty($language)) { restore_previous_locale(); }
+            if ($did_switch_locale) { restore_previous_locale(); }
             return $response;
         }
         if (!empty($if_modified_since)) {
@@ -582,7 +587,7 @@ class B2BPress_API {
             if ($since !== false && gmdate('D, d M Y H:i:s', $since) . ' GMT' >= $last_modified_gmt) {
                 $response = new WP_REST_Response(null, 304);
                 $this->apply_cache_headers($response, $etag, $last_modified_gmt);
-                if (!empty($language)) { restore_previous_locale(); }
+                if ($did_switch_locale) { restore_previous_locale(); }
                 return $response;
             }
         }
@@ -594,9 +599,7 @@ class B2BPress_API {
         $response = rest_ensure_response($data);
         $this->apply_cache_headers($response, $etag, $last_modified_gmt);
 
-        if (!empty($language)) {
-            restore_previous_locale();
-        }
+        if ($did_switch_locale) { restore_previous_locale(); }
 
         return $response;
     }

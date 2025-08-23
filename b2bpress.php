@@ -2,12 +2,14 @@
 /**
  * Plugin Name: B2BPress
  * Plugin URI: https://expansing.cc/b2bpress
- * Description: 基于WooCommerce的B2B电子商务解决方案，精简了所有与B2B无关的功能
- * Version: 1.1.0
+ * Description: B2B eCommerce solution for WooCommerce, focused on B2B use cases and streamlined features.
+ * Version: 1.2.0
  * Author: B2BPress Team
  * Author URI: https://expansing.cc
  * Text Domain: b2bpress
  * Domain Path: /languages
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * WC requires at least: 8.7
@@ -27,7 +29,7 @@ add_action('before_woocommerce_init', function() {
 });
 
 // 定义插件常量
-define('B2BPRESS_VERSION', '1.1.0');
+define('B2BPRESS_VERSION', '1.2.0');
 define('B2BPRESS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('B2BPRESS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('B2BPRESS_PLUGIN_BASENAME', plugin_basename(__FILE__));

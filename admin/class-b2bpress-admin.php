@@ -320,9 +320,10 @@ class B2BPress_Admin {
         $options = get_option('b2bpress_options', array());
         $value = isset($options[$args['label_for']]) ? $options[$args['label_for']] : 0;
         ?>
+        <input type="hidden" name="b2bpress_options[<?php echo esc_attr($args['label_for']); ?>]" value="0">
         <input type="checkbox" id="<?php echo esc_attr($args['label_for']); ?>" 
                name="b2bpress_options[<?php echo esc_attr($args['label_for']); ?>]" 
-               value="1" <?php checked(1, $value); ?>>
+               value="1" <?php checked('1', (string) $value); ?>>
         <label for="<?php echo esc_attr($args['label_for']); ?>"><?php echo esc_html($args['description']); ?></label>
         <?php
     }
@@ -334,7 +335,7 @@ class B2BPress_Admin {
      */
     public function select_field_callback($args) {
         $options = get_option('b2bpress_options', array());
-        $value = isset($options[$args['label_for']]) ? $options[$args['label_for']] : '';
+        $value = isset($options[$args['label_for']]) ? $options[$args['label_for']] : (isset($args['options']['inherit']) ? 'inherit' : '');
         ?>
         <select id="<?php echo esc_attr($args['label_for']); ?>" 
                 name="b2bpress_options[<?php echo esc_attr($args['label_for']); ?>]">
@@ -458,10 +459,12 @@ class B2BPress_Admin {
         ));
         
         // 设置帮助侧边栏
+        $docs_url = esc_url('https://example.com/docs');
+        $support_url = esc_url('https://example.com/support');
         $screen->set_help_sidebar(
-            '<p><strong>' . __('更多信息:', 'b2bpress') . '</strong></p>' .
-            '<p><a href="https://example.com/docs" target="_blank">' . __('文档', 'b2bpress') . '</a></p>' .
-            '<p><a href="https://example.com/support" target="_blank">' . __('支持', 'b2bpress') . '</a></p>'
+            '<p><strong>' . esc_html__('更多信息:', 'b2bpress') . '</strong></p>' .
+            '<p><a href="' . $docs_url . '" target="_blank" rel="noopener noreferrer">' . esc_html__('文档', 'b2bpress') . '</a></p>' .
+            '<p><a href="' . $support_url . '" target="_blank" rel="noopener noreferrer">' . esc_html__('支持', 'b2bpress') . '</a></p>'
         );
     }
 
@@ -494,7 +497,7 @@ class B2BPress_Admin {
         // 旧设置用于对比是否需要清缓存
         $old_options = get_option('b2bpress_options', array());
 
-        $sanitized = array();
+        $sanitized = $old_options; // 基于已有值，避免首次保存把未出现字段全部视为选中
 
         // 布尔选项
         $boolean_keys = array(
@@ -502,16 +505,23 @@ class B2BPress_Admin {
             'disable_prices', 'disable_marketing', 'disable_css_js', 'show_product_images', 'login_required'
         );
         foreach ($boolean_keys as $key) {
-            $sanitized[$key] = isset($input[$key]) ? 1 : 0;
+            if (isset($input[$key])) {
+                $sanitized[$key] = (int) (bool) $input[$key];
+            } else {
+                // 若表单未提交该键，则保持旧值（避免首次保存误勾选）
+                if (!isset($sanitized[$key])) {
+                    $sanitized[$key] = 0;
+                }
+            }
         }
 
         // 默认表格样式（白名单）
-        $style = isset($input['default_table_style']) ? sanitize_text_field($input['default_table_style']) : '';
+        $style = isset($input['default_table_style']) ? sanitize_text_field($input['default_table_style']) : (isset($old_options['default_table_style']) ? $old_options['default_table_style'] : 'inherit');
         $allowed_styles = array('inherit', 'shadcn', 'clean', 'bordered', 'compact');
         $sanitized['default_table_style'] = in_array($style, $allowed_styles, true) ? $style : 'inherit';
 
         // 默认每页数量（范围限制）
-        $per_page = isset($input['default_per_page']) ? absint($input['default_per_page']) : 20;
+        $per_page = isset($input['default_per_page']) ? absint($input['default_per_page']) : (isset($old_options['default_per_page']) ? absint($old_options['default_per_page']) : 20);
         if ($per_page < 5) { $per_page = 5; }
         if ($per_page > 100) { $per_page = 100; }
         $sanitized['default_per_page'] = $per_page;
@@ -522,7 +532,7 @@ class B2BPress_Admin {
             // 进一步去除可能的注入符号（与前端输出的保护配合）
             $css = preg_replace('/[{}<>]/', '', (string) $css);
             $sanitized['global_table_css'] = $css;
-        } else {
+        } else if (!isset($sanitized['global_table_css'])) {
             $sanitized['global_table_css'] = '';
         }
 

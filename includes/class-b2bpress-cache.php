@@ -199,6 +199,11 @@ class B2BPress_Cache {
         $this->log_debug('开始删除前缀为 ' . $prefix . ' 的缓存');
         
         try {
+            // 仅在后台、定时任务或 WP-CLI 中执行，避免前台大范围删除瞬态
+            if (!is_admin() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('WP_CLI') && WP_CLI)) {
+                $this->log_debug('跳过删除：非后台/非CRON/非WP-CLI环境');
+                return;
+            }
             // 删除瞬态缓存（仅删除与b2bpress相关的前缀）
             $query = $wpdb->prepare(
                 "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -243,6 +248,11 @@ class B2BPress_Cache {
         $this->log_debug('开始删除组 ' . $group . ' 的缓存');
         
         try {
+            // 仅在后台、定时任务或 WP-CLI 中执行
+            if (!is_admin() && !(defined('DOING_CRON') && DOING_CRON) && !(defined('WP_CLI') && WP_CLI)) {
+                $this->log_debug('跳过删除：非后台/非CRON/非WP-CLI环境');
+                return;
+            }
             // 删除瞬态缓存
             $query = $wpdb->prepare(
                 "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",

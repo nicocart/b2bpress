@@ -78,6 +78,26 @@ if (!defined('ABSPATH')) {
             <h3><?php _e('版本历史', 'b2bpress'); ?></h3>
             <div class="b2bpress-changelog">
                 <div class="b2bpress-changelog-item">
+                    <h4>1.2.0 <span class="b2bpress-changelog-date">2025-08-14</span></h4>
+                    <ul>
+                        <li><?php _e('I18n：移除运行时映射，仅依赖 .po/.mo。后端跟随用户语言，前端跟随站点语言。', 'b2bpress'); ?></li>
+                        <li><?php _e('设置：首次保存不再默认勾选全部选项；保留未出现键的旧值', 'b2bpress'); ?></li>
+                        <li><?php _e('体验：前端统一按用户语言展示；Elementor 注册兼容新 API', 'b2bpress'); ?></li>
+                        <li><?php _e('性能：分类属性分页扫描；仅在后台/CRON/CLI清理缓存', 'b2bpress'); ?></li>
+                        <li><?php _e('合规：补充 readme/license；优化后台文案及转义', 'b2bpress'); ?></li>
+                    </ul>
+                </div>
+                <div class="b2bpress-changelog-item">
+                    <h4>1.1.1 <span class="b2bpress-changelog-date">2025-08-14</span></h4>
+                    <ul>
+                        <li><?php _e('I18n：后台页面英文适配；默认依赖 .po/.mo；运行时英文兜底默认关闭（已在 1.2.0 中移除）', 'b2bpress'); ?></li>
+                        <li><?php _e('设置：首次保存不再默认勾选全部选项；保留未出现键的旧值', 'b2bpress'); ?></li>
+                        <li><?php _e('体验：前端统一按用户语言展示；Elementor 注册兼容新 API', 'b2bpress'); ?></li>
+                        <li><?php _e('性能：分类属性分页扫描；仅在后台/CRON/CLI清理缓存', 'b2bpress'); ?></li>
+                        <li><?php _e('合规：补充 readme/license；优化后台文案及转义', 'b2bpress'); ?></li>
+                    </ul>
+                </div>
+                <div class="b2bpress-changelog-item">
                     <h4>1.0.1 <span class="b2bpress-changelog-date">2025-08-11</span></h4>
                     <ul>
                         <li><?php _e('修复：移除重复的全局启用/停用钩子，避免激活逻辑执行两次', 'b2bpress'); ?></li>

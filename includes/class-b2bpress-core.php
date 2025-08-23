@@ -43,6 +43,10 @@ class B2BPress_Core {
         require_once B2BPRESS_PLUGIN_DIR . 'includes/class-b2bpress-permissions.php';
         new B2BPress_Permissions();
         
+        // 隐私导出/擦除组件
+        require_once B2BPRESS_PLUGIN_DIR . 'includes/class-b2bpress-privacy.php';
+        new B2BPress_Privacy();
+
         // 加载API组件
         require_once B2BPRESS_PLUGIN_DIR . 'includes/api/class-b2bpress-api.php';
         new B2BPress_API();

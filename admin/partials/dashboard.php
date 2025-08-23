@@ -24,11 +24,7 @@ if (!defined('ABSPATH')) {
                 <div class="b2bpress-dashboard-card">
                     <h3><?php _e('快速入门', 'b2bpress'); ?></h3>
                     <ul>
-                        <li>
-                            <a href="<?php echo admin_url('admin.php?page=b2bpress-wizard'); ?>">
-                                <?php _e('运行设置向导', 'b2bpress'); ?>
-                            </a>
-                        </li>
+                        <?php /* 向导页面暂未实现，避免死链接 */ ?>
                         <li>
                             <a href="<?php echo admin_url('admin.php?page=b2bpress-settings'); ?>">
                                 <?php _e('配置插件设置', 'b2bpress'); ?>

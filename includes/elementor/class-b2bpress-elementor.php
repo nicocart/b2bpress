@@ -37,8 +37,15 @@ class B2BPress_Elementor {
         // 加载小部件类
         require_once B2BPRESS_PLUGIN_DIR . 'includes/elementor/widgets/class-b2bpress-table-widget.php';
         
-        // 注册小部件
-        $widgets_manager->register_widget_type(new B2BPress_Table_Widget());
+        // 兼容新旧注册方式
+        $widget = new B2BPress_Table_Widget();
+        if (method_exists($widgets_manager, 'register')) {
+            $widgets_manager->register($widget);
+        } else {
+            if (method_exists($widgets_manager, 'register_widget_type')) {
+                $widgets_manager->register_widget_type($widget);
+            }
+        }
     }
     
     /**

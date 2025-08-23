@@ -154,7 +154,7 @@
 }
 
 .b2bpress-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: 1px solid #eaeaea;
 }
 
 .b2bpress-table tbody tr:hover {

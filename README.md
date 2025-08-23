@@ -99,6 +99,20 @@ GPL v2 or later
 
 ## Changelog
 
+### 1.2.0 - 2025-08-14
+- I18n: Remove runtime mapping; rely on .po/.mo only. Backend follows user locale; frontend follows site locale
+- Settings: Prevent first-save auto-check; preserve old values when keys are absent
+- UX: Elementor widget registration compatible with new API
+- Performance: Paginated category attribute scan; restrict cache cleanup to admin/cron/CLI
+- Compliance: Readme/license headers, safer admin strings
+
+### 1.1.1 - 2025-08-14
+- I18n: Ensure backend pages have English fallbacks; default to .po/.mo; runtime fallback is opt-in via filter (now removed in 1.2.0)
+- Settings: Prevent first-save auto-check of all boolean options; preserve old values when keys are absent
+- UX: Frontend uses user-preferred language consistently; Elementor registration compatible with new API
+- Performance: Category attribute scan paginated; cache cleanup limited to admin/cron/CLI contexts
+- Compliance: Added readme.txt, license headers; safer admin strings
+
 ### 1.1.0 - 2025-08-13
 - Feature: New table style set (Inherit, ShadCN/UI, Clean, Bordered, Compact) with consistent CSS selectors
 - Fix: Global default style now applies reliably to frontend (priority + cache invalidation)

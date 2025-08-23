@@ -65,17 +65,8 @@ class B2BPress_Public {
             true
         );
         
-        // 获取语言：前端优先用户语言，其次站点语言
-        $site_language = determine_locale();
-        if (isset($GLOBALS['b2bpress_core'])) {
-            $core = $GLOBALS['b2bpress_core'];
-            if (method_exists($core, 'get_language_manager')) {
-                $language_manager = $core->get_language_manager();
-                if ($language_manager) {
-                    $site_language = $language_manager->get_appropriate_language(true);
-                }
-            }
-        }
+        // 获取语言：遵循 WP 判定（避免与用户后台语言混淆）
+        $site_language = function_exists('determine_locale') ? determine_locale() : get_locale();
         
         $default_locale = 'en_US'; // 默认英文
         
@@ -140,19 +131,8 @@ class B2BPress_Public {
      * @param array $args 表格参数
      */
     public function before_table($args) {
-        // 获取站点语言
-        $site_language = determine_locale();
-        
-        // 尝试从核心实例获取站点语言
-        if (isset($GLOBALS['b2bpress_core'])) {
-            $core = $GLOBALS['b2bpress_core'];
-            if (method_exists($core, 'get_language_manager')) {
-                $language_manager = $core->get_language_manager();
-                if ($language_manager) {
-                    $site_language = $language_manager->get_site_language();
-                }
-            }
-        }
+        // 获取适当的语言（前端：使用站点/请求语言）
+        $site_language = function_exists('determine_locale') ? determine_locale() : get_locale();
         
         // 输出表格前的HTML（携带语言）
         echo '<div class="b2bpress-table-container" data-id="' . esc_attr($args['id']) . '" data-language="' . esc_attr($site_language) . '">';
